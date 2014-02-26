@@ -1,0 +1,6 @@
+# Build output.
+/entangle
+
+# Python testing environment.
+/py
+*.pyc
