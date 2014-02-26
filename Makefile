@@ -4,7 +4,8 @@ PACKAGES := \
 	./parser \
 	./lexer \
 	./declarations \
-	./utils
+	./utils \
+	./term
 SOURCE := $(wildcard *.go $(addsuffix /*.go, $(PACKAGES)))
 
 export GOPATH=$(shell pwd)

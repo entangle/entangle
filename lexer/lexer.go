@@ -259,7 +259,7 @@ func (l *Lexer) parseNumber() (t token.Token, err error) {
 		}
 
 		// Attempt to convert the number.
-		rawValue := l.stringUntilHere(dataMantissaStart+2)
+		rawValue := l.stringUntilHere(dataMantissaStart + 2)
 
 		if len(rawValue) == 0 {
 			if l.cur == eof || l.cur == eol {

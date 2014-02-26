@@ -9,25 +9,25 @@ import (
 )
 
 type delimiterFixture struct {
-	src string
+	src       string
 	tokenType token.TokenType
 }
 
-var delimiterFixtures = []delimiterFixture {
-	{ "", token.EndOfFile },
-	{ " ", token.EndOfFile },
-	{ "\r", token.EndOfFile },
-	{ "\t", token.EndOfFile },
-	{ "\n", token.NewLine },
-	{ "{", token.TokenType('{') },
-	{ "}", token.TokenType('}') },
-	{ "[", token.TokenType('[') },
-	{ "]", token.TokenType(']') },
-	{ "(", token.TokenType('(') },
-	{ ")", token.TokenType(')') },
-	{ ":", token.TokenType(':') },
-	{ ".", token.TokenType('.') },
-	{ "/", token.TokenType('/') },
+var delimiterFixtures = []delimiterFixture{
+	{"", token.EndOfFile},
+	{" ", token.EndOfFile},
+	{"\r", token.EndOfFile},
+	{"\t", token.EndOfFile},
+	{"\n", token.NewLine},
+	{"{", token.TokenType('{')},
+	{"}", token.TokenType('}')},
+	{"[", token.TokenType('[')},
+	{"]", token.TokenType(']')},
+	{"(", token.TokenType('(')},
+	{")", token.TokenType(')')},
+	{":", token.TokenType(':')},
+	{".", token.TokenType('.')},
+	{"/", token.TokenType('/')},
 }
 
 func assertLexerError(t *testing.T, stringSrc string, expected string) {
@@ -88,7 +88,7 @@ func testValid(t *testing.T, stringSrc string) (tokens []token.Token) {
 	// Assert that no errors occured.
 	if err != nil {
 		if parseErr, ok := err.(errors.ParseError); ok {
-			lastFrame := parseErr.Frames()[len(parseErr.Frames()) - 1]
+			lastFrame := parseErr.Frames()[len(parseErr.Frames())-1]
 
 			t.Errorf("Unexpected error when parsing `%s`: %v, from %d:%d to %d:%d", stringSrc, err, lastFrame.Start.Line, lastFrame.Start.Character, lastFrame.End.Line, lastFrame.End.Character)
 		} else {

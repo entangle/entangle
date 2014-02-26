@@ -1,9 +1,9 @@
 package lexer
 
 import (
+	"../token"
 	"fmt"
 	"testing"
-	"../token"
 )
 
 func testValidUintConstant(t *testing.T, stringSrc string, value uint64) {
