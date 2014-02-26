@@ -192,6 +192,16 @@ func (l *Lexer) unexpectedCharacter() (t token.Token, err error) {
 	return
 }
 
+// Get the string up until this point from a given data position.
+func (l *Lexer) stringUntilHere(start int) string {
+	end := l.dataPosition
+	if l.cur != eof {
+		end--
+	}
+
+	return string(l.data[start:end])
+}
+
 // Parse an integer to a token.
 func (l *Lexer) parseIntToToken(t *token.Token, negative bool, rawValue string, base int) (err error) {
 	if negative {
@@ -249,7 +259,7 @@ func (l *Lexer) parseNumber() (t token.Token, err error) {
 		}
 
 		// Attempt to convert the number.
-		rawValue := string(l.data[dataMantissaStart+2 : l.dataPosition-1])
+		rawValue := l.stringUntilHere(dataMantissaStart+2)
 
 		if len(rawValue) == 0 {
 			if l.cur == eof || l.cur == eol {
@@ -261,7 +271,7 @@ func (l *Lexer) parseNumber() (t token.Token, err error) {
 			return
 		}
 
-		t.StringValue = string(l.data[dataStart : l.dataPosition-1])
+		t.StringValue = l.stringUntilHere(dataStart)
 		t.End = l.position.Before()
 
 		err = l.parseIntToToken(&t, negative, rawValue, 16)
@@ -300,8 +310,8 @@ func (l *Lexer) parseNumber() (t token.Token, err error) {
 		}
 
 		// Parse as an octal or decimal number.
-		rawValue := string(l.data[dataMantissaStart : l.dataPosition-1])
-		t.StringValue = string(l.data[dataStart : l.dataPosition-1])
+		rawValue := l.stringUntilHere(dataMantissaStart)
+		t.StringValue = l.stringUntilHere(dataStart)
 		t.End = l.position.Before()
 
 		base := 10
@@ -379,7 +389,7 @@ func (l *Lexer) parseNumber() (t token.Token, err error) {
 	}
 
 	// Attempt to parse the floating point value.
-	t.StringValue = string(l.data[dataStart : l.dataPosition-1])
+	t.StringValue = l.stringUntilHere(dataStart)
 	t.End = l.position.Before()
 	t.Type = token.FloatConstant
 
@@ -532,7 +542,7 @@ func (l *Lexer) Lex() (t token.Token, err error) {
 // Invoked with the guarantee that the current character is a valid start
 // character for an identifier.
 func (l *Lexer) parseIdentifier() (t token.Token, err error) {
-	runes := append(make([]rune, 0, 128), l.cur)
+	start := l.dataPosition - 1
 	t.Start = l.position
 
 	for {
@@ -541,8 +551,6 @@ func (l *Lexer) parseIdentifier() (t token.Token, err error) {
 		if l.cur == eof || l.cur > 127 || !identifierCharacterTable[l.cur] {
 			break
 		}
-
-		runes = append(runes, l.cur)
 	}
 
 	// Make sure that an identifier is followed by either a whitespace, a
@@ -554,7 +562,7 @@ func (l *Lexer) parseIdentifier() (t token.Token, err error) {
 	// Construct a string and determine if it's a keyword or "just" an
 	// identifier.
 	t.End = l.position.Before()
-	identifier := string(runes)
+	identifier := l.stringUntilHere(start)
 
 	t.Type = IdentifierTokenType(identifier)
 	t.StringValue = identifier
