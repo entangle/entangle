@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"../errors"
-	"../term"
-	"../utils"
+	"entangle/errors"
+	"entangle/term"
+	"entangle/utils"
 	"fmt"
 	"strings"
 )

@@ -1,7 +1,7 @@
 package declarations
 
 import (
-	"../utils"
+	"entangle/utils"
 )
 
 // Interface declaration.

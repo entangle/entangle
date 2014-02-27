@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"../token"
+	"entangle/token"
 	"fmt"
 	"regexp"
 )

@@ -1,5 +1,7 @@
 # Build output.
-/entangle
+/bin
+/pkg
+/dist
 
 # Python testing environment.
 /py

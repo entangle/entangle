@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"../token"
+	"entangle/token"
 )
 
 var keywordMap = map[string]token.TokenType{

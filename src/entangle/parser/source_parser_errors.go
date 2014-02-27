@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"../errors"
-	"../token"
+	"entangle/errors"
+	"entangle/token"
 	"fmt"
 )
 

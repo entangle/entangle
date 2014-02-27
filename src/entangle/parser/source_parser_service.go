@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"../declarations"
-	"../token"
+	"entangle/declarations"
+	"entangle/token"
 )
 
 // Parse a service declaration.

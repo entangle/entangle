@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"../declarations"
-	"../errors"
-	"../lexer"
-	"../source"
-	"../token"
+	"entangle/declarations"
+	"entangle/errors"
+	"entangle/lexer"
+	"entangle/source"
+	"entangle/token"
 )
 
 // Source parser.

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./errors"
-	"./parser"
-	"./source"
+	"entangle/errors"
+	"entangle/parser"
+	"entangle/source"
 	"fmt"
 	"os"
 )

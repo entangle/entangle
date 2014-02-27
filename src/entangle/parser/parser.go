@@ -2,11 +2,11 @@
 package parser
 
 import (
-	"../declarations"
-	"../errors"
-	"../lexer"
-	"../source"
-	"../token"
+	"entangle/declarations"
+	"entangle/errors"
+	"entangle/lexer"
+	"entangle/source"
+	"entangle/token"
 )
 
 // Parse an Entangle IDL file to an interface declaration.

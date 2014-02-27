@@ -2,9 +2,9 @@
 package lexer
 
 import (
-	"../errors"
-	"../source"
-	"../token"
+	"entangle/errors"
+	"entangle/source"
+	"entangle/token"
 	"fmt"
 	"strconv"
 )

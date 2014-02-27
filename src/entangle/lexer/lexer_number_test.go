@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"../token"
+	"entangle/token"
 	"fmt"
 	"testing"
 )

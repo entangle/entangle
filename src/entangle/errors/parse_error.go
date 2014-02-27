@@ -1,8 +1,8 @@
 package errors
 
 import (
-	"../token"
-	"../source"
+	"entangle/token"
+	"entangle/source"
 )
 
 // Parse error frame.
