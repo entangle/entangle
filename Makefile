@@ -1,11 +1,11 @@
 PACKAGES := \
-	token \
-	source \
-	parser \
-	lexer \
-	declarations \
-	utils \
-	term
+	entangle/token \
+	entangle/source \
+	entangle/parser \
+	entangle/lexer \
+	entangle/declarations \
+	entangle/utils \
+	entangle/term
 SOURCE := $(wildcard $(addsuffix /*.go, $(addprefix src/, $(PACKAGES))))
 
 export GOPATH=$(shell pwd)
