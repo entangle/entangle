@@ -35,6 +35,16 @@ var reservedIdentifiers = map[string]struct{}{
 	"const":   struct{}{},
 }
 
+var reservedArgumentNames = map[string]struct{}{
+	"notify": struct{}{},
+	"trace":  struct{}{},
+}
+
+var reservedFieldNames = map[string]struct{}{
+	"Serialize":   struct{}{},
+	"Deserialize": struct{}{},
+}
+
 // Validate an import name.
 func (p *sourceParser) validateImportName(tok *token.Token) error {
 	if _, reserved := reservedIdentifiers[tok.StringValue]; reserved {
@@ -93,6 +103,10 @@ func (p *sourceParser) validateFieldName(tok *token.Token) error {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved identifier", tok.StringValue), tok)
 	}
 
+	if _, reserved := reservedFieldNames[tok.StringValue]; reserved {
+		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved field name", tok.StringValue), tok)
+	}
+
 	if !firstUpperCamelCaseExpression.MatchString(tok.StringValue) {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is not a valid field name. Field names must be upper camel case", tok.StringValue), tok)
 	}
@@ -104,6 +118,10 @@ func (p *sourceParser) validateFieldName(tok *token.Token) error {
 func (p *sourceParser) validateArgumentName(tok *token.Token) error {
 	if _, reserved := reservedIdentifiers[tok.StringValue]; reserved {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved identifier", tok.StringValue), tok)
+	}
+
+	if _, reserved := reservedArgumentNames[tok.StringValue]; reserved {
+		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved argument name", tok.StringValue), tok)
 	}
 
 	if !firstLowerCamelCaseExpression.MatchString(tok.StringValue) {
