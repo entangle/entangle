@@ -272,6 +272,17 @@ func (p *sourceParser) parseServiceFunction(serviceDecl *declarations.Service) (
 		return
 	}
 
+	// Parse the return type.
+	if p.tok.Type != token.NewLine && p.tok.Type != token.EndOfFile {
+		if decl.ReturnType, err = p.parseType(contextDesc, decl.Name); err != nil {
+			return
+		}
+
+		if err = p.next(); err != nil {
+			return
+		}
+	}
+
 	// The function declaration should be followed by a new line.
 	switch p.tok.Type {
 	case token.NewLine:

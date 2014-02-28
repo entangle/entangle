@@ -71,6 +71,28 @@ func NewStructType(decl *Struct, nilable bool) Type {
 	}
 }
 
+// Enum type.
+type EnumType struct {
+	decl    *Enum
+	nilable bool
+}
+
+func (s *EnumType) Class() TypeClass {
+	return EnumClass
+}
+
+func (s *EnumType) Nilable() bool {
+	return s.nilable
+}
+
+// New enum type.
+func NewEnumType(decl *Enum, nilable bool) Type {
+	return &EnumType{
+		decl:    decl,
+		nilable: nilable,
+	}
+}
+
 // List type.
 type ListType struct {
 	elementType Type

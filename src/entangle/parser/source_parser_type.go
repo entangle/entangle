@@ -27,8 +27,8 @@ func (p *sourceParser) parseType(declarationDesc, self string) (decl declaration
 			err = p.parseErrorHere("non-nilable self references are not allowed")
 		} else if structDecl, ok := p.decl.Structs[p.tok.StringValue]; ok {
 			decl = declarations.NewStructType(structDecl, nilable)
-			//} else if enumDecl, ok := p.decl.Enums[token.StringValue]; ok {
-
+		} else if enumDecl, ok := p.decl.Enums[p.tok.StringValue]; ok {
+			decl = declarations.NewEnumType(enumDecl, nilable)
 		} else {
 			err = p.parseErrorHere(fmt.Sprintf("unknown type '%s'", p.tok.StringValue))
 		}
