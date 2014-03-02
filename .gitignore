@@ -1,7 +1,11 @@
+# Dependencies.
+/src/github.com
+
 # Build output.
 /bin
 /pkg
 /dist
+/src/entangle/data/assets.go
 
 # Python testing environment.
 /py
