@@ -17,7 +17,7 @@ all: entangle
 entangle: $(SOURCE)
 	@go build -v -o bin/entangle cmds/entangle
 
-src/entangle/data/assets.go: $(DATA_SOURCE)
+src/entangle/data/assets.go: bin/go-bindata $(DATA_SOURCE)
 	@./bin/go-bindata \
 		-nocompress \
 		-prefix="data/" \
@@ -37,6 +37,6 @@ format:
 	@gofmt -l -w $(SOURCE)
 
 clean:
-	@rm -rf bin pkg
+	@rm -rf bin pkg src/github.com src/entangle/data/assets.go
 
 .PHONY: test clean
