@@ -8,7 +8,7 @@ PACKAGES := \
 	entangle/term \
 	entangle/generators
 SOURCE := $(wildcard $(addsuffix /*.go, $(addprefix src/, $(PACKAGES)))) src/entangle/data/assets.go
-DATA_SOURCE := $(shell find data/ -type f)
+DATA_SOURCE := $(shell find data -type f ! -name '.*')
 
 export GOPATH=$(shell pwd)
 
