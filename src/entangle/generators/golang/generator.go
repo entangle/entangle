@@ -2,51 +2,51 @@ package golang
 
 import (
 	"bytes"
-	"fmt"
+	"code.google.com/p/go.tools/imports"
 	"entangle/data"
 	"entangle/declarations"
 	"entangle/generators"
-	"text/template"
-	"path/filepath"
+	"fmt"
 	"os"
-	"code.google.com/p/go.tools/imports"
+	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 // Go generator.
 type generator struct {
-	exceptionsTmpl *template.Template
-	servicesTmpl *template.Template
+	exceptionsTmpl             *template.Template
+	servicesTmpl               *template.Template
 	serviceImplementationsTmpl *template.Template
-	enumsTmpl *template.Template
-	structsTmpl *template.Template
-	deserializationTmpl *template.Template
-	serializationTmpl *template.Template
-	serversTmpl *template.Template
-	clientsTmpl *template.Template
+	enumsTmpl                  *template.Template
+	structsTmpl                *template.Template
+	deserializationTmpl        *template.Template
+	serializationTmpl          *template.Template
+	serversTmpl                *template.Template
+	clientsTmpl                *template.Template
 }
 
 // New generator.
 func NewGenerator() (gen generators.Generator, err error) {
-	g := &generator {}
+	g := &generator{}
 
 	// Define function mapping.
-	funcMap := template.FuncMap {
-		"documentation": documentationHelper,
-		"package": packageHelper,
-		"type": typeHelper,
-		"nonNilableType": nonNilableTypeHelper,
-		"canSkipBeforeField": canSkipBeforeFieldHelper,
-		"deserializationCode": deserializationCodeHelper,
-		"serializationCode": serializationCodeHelper,
-		"structSerializationCode": structSerializationCodeHelper,
+	funcMap := template.FuncMap{
+		"documentation":             documentationHelper,
+		"package":                   packageHelper,
+		"type":                      typeHelper,
+		"nonNilableType":            nonNilableTypeHelper,
+		"canSkipBeforeField":        canSkipBeforeFieldHelper,
+		"deserializationCode":       deserializationCodeHelper,
+		"serializationCode":         serializationCodeHelper,
+		"structSerializationCode":   structSerializationCodeHelper,
 		"typeDeserializationMethod": typeDeserializationMethodHelper,
-		"typeSerializationCode": typeSerializationCodeHelper,
+		"typeSerializationCode":     typeSerializationCodeHelper,
 		"fieldIndex": func(fieldDecl *declarations.Field) string {
-			return fmt.Sprintf("%d", fieldDecl.Index - 1)
+			return fmt.Sprintf("%d", fieldDecl.Index-1)
 		},
 		"argIndex": func(arg *declarations.FunctionArgument) string {
-			return fmt.Sprintf("%d", arg.Index - 1)
+			return fmt.Sprintf("%d", arg.Index-1)
 		},
 		"lowerFirst": func(input string) string {
 			if input == "" {
@@ -62,17 +62,17 @@ func NewGenerator() (gen generators.Generator, err error) {
 	// Load templates.
 	for _, info := range []struct {
 		Filename string
-		Target **template.Template
-	} {
-		{ "exceptions.go.tmpl", &g.exceptionsTmpl },
-		{ "services.go.tmpl", &g.servicesTmpl },
-		{ "service_implementations.go.tmpl", &g.serviceImplementationsTmpl },
-		{ "enums.go.tmpl", &g.enumsTmpl },
-		{ "structs.go.tmpl", &g.structsTmpl },
-		{ "deserialization.go.tmpl", &g.deserializationTmpl },
-		{ "serialization.go.tmpl", &g.serializationTmpl },
-		{ "servers.go.tmpl", &g.serversTmpl },
-		{ "clients.go.tmpl", &g.clientsTmpl },
+		Target   **template.Template
+	}{
+		{"exceptions.go.tmpl", &g.exceptionsTmpl},
+		{"services.go.tmpl", &g.servicesTmpl},
+		{"service_implementations.go.tmpl", &g.serviceImplementationsTmpl},
+		{"enums.go.tmpl", &g.enumsTmpl},
+		{"structs.go.tmpl", &g.structsTmpl},
+		{"deserialization.go.tmpl", &g.deserializationTmpl},
+		{"serialization.go.tmpl", &g.serializationTmpl},
+		{"servers.go.tmpl", &g.serversTmpl},
+		{"clients.go.tmpl", &g.clientsTmpl},
 	} {
 		var src []byte
 		path := fmt.Sprintf("templates/generators/golang/%s", info.Filename)
@@ -103,16 +103,16 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 	for _, output := range []struct {
 		Filename string
 		Template *template.Template
-	} {
-		{ "exceptions.go", g.exceptionsTmpl },
-		{ "services.go", g.servicesTmpl },
-		{ "service_implementations.go", g.serviceImplementationsTmpl },
-		{ "enums.go", g.enumsTmpl },
-		{ "structs.go", g.structsTmpl },
-		{ "deserialization.go", g.deserializationTmpl },
-		{ "serialization.go", g.serializationTmpl },
-		{ "servers.go", g.serversTmpl },
-		{ "clients.go", g.clientsTmpl },
+	}{
+		{"exceptions.go", g.exceptionsTmpl},
+		{"services.go", g.servicesTmpl},
+		{"service_implementations.go", g.serviceImplementationsTmpl},
+		{"enums.go", g.enumsTmpl},
+		{"structs.go", g.structsTmpl},
+		{"deserialization.go", g.deserializationTmpl},
+		{"serialization.go", g.serializationTmpl},
+		{"servers.go", g.serversTmpl},
+		{"clients.go", g.clientsTmpl},
 	} {
 		filePath := filepath.Join(outputPath, output.Filename)
 
@@ -122,7 +122,7 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 		if err = output.Template.Execute(buffer, struct {
 			Interface *declarations.Interface
 			SerDesMap map[string]declarations.Type
-		} {
+		}{
 			Interface: interfaceDecl,
 			SerDesMap: serDesMap,
 		}); err != nil {
@@ -130,12 +130,12 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 		}
 
 		// Clean the output file by running it through imports.
-		outputData, cleanErr := imports.Process(filePath, buffer.Bytes(), &imports.Options {
-			Fragment: false,
+		outputData, cleanErr := imports.Process(filePath, buffer.Bytes(), &imports.Options{
+			Fragment:  false,
 			AllErrors: true,
-			Comments: true,
+			Comments:  true,
 			TabIndent: true,
-			TabWidth: 4,
+			TabWidth:  4,
 		})
 		if cleanErr != nil {
 			err = fmt.Errorf("error cleaning generated %s: %v", filePath, cleanErr)

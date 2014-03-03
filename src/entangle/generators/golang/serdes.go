@@ -1,25 +1,25 @@
 package golang
 
 import (
-	"fmt"
 	"entangle/declarations"
+	"fmt"
 )
 
 var (
-	deserializationSubTypeMapping = map[declarations.TypeClass]string {
-		declarations.BoolClass: "Bool",
-		declarations.StringClass: "String",
-		declarations.BinaryClass: "Binary",
+	deserializationSubTypeMapping = map[declarations.TypeClass]string{
+		declarations.BoolClass:    "Bool",
+		declarations.StringClass:  "String",
+		declarations.BinaryClass:  "Binary",
 		declarations.Float32Class: "Float32",
 		declarations.Float64Class: "Float64",
-		declarations.Int8Class: "Int8",
-		declarations.Int16Class: "Int16",
-		declarations.Int32Class: "Int32",
-		declarations.Int64Class: "Int64",
-		declarations.Uint8Class: "Uint8",
-		declarations.Uint16Class: "Uint16",
-		declarations.Uint32Class: "Uint32",
-		declarations.Uint64Class: "Uint64",
+		declarations.Int8Class:    "Int8",
+		declarations.Int16Class:   "Int16",
+		declarations.Int32Class:   "Int32",
+		declarations.Int64Class:   "Int64",
+		declarations.Uint8Class:   "Uint8",
+		declarations.Uint16Class:  "Uint16",
+		declarations.Uint32Class:  "Uint32",
+		declarations.Uint64Class:  "Uint64",
 	}
 )
 
@@ -99,7 +99,7 @@ func nameOfSerializer(typeDecl declarations.Type) string {
 }
 
 // Map a type to a serialization/deserialization map.
-func mapTypeToSerDesMap(typeDecl declarations.Type, m *map[string] declarations.Type) {
+func mapTypeToSerDesMap(typeDecl declarations.Type, m *map[string]declarations.Type) {
 	suffix := suffixOfSerDes(typeDecl)
 	if suffix == "" {
 		return
@@ -134,8 +134,8 @@ func mapTypeToSerDesMap(typeDecl declarations.Type, m *map[string] declarations.
 }
 
 // Build a serialization/deserialization map for interface.
-func buildSerDesMap(interfaceDecl *declarations.Interface) (m map[string] declarations.Type) {
-	m = make(map[string] declarations.Type)
+func buildSerDesMap(interfaceDecl *declarations.Interface) (m map[string]declarations.Type) {
+	m = make(map[string]declarations.Type)
 
 	// Iterate across all function arguments in services.
 	for _, service := range interfaceDecl.Services {

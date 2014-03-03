@@ -1,41 +1,41 @@
 package golang
 
 import (
-	"fmt"
 	"entangle/declarations"
 	"entangle/utils"
+	"fmt"
 	"strings"
 )
 
 var (
-	simpleTypeClassMapping = map[declarations.TypeClass]string {
-		declarations.BoolClass: "bool",
-		declarations.StringClass: "string",
+	simpleTypeClassMapping = map[declarations.TypeClass]string{
+		declarations.BoolClass:    "bool",
+		declarations.StringClass:  "string",
 		declarations.Float32Class: "float32",
 		declarations.Float64Class: "float64",
-		declarations.Int8Class: "int8",
-		declarations.Int16Class: "int16",
-		declarations.Int32Class: "int32",
-		declarations.Int64Class: "int64",
-		declarations.Uint8Class: "uint8",
-		declarations.Uint16Class: "uint16",
-		declarations.Uint32Class: "uint32",
-		declarations.Uint64Class: "uint64",
+		declarations.Int8Class:    "int8",
+		declarations.Int16Class:   "int16",
+		declarations.Int32Class:   "int32",
+		declarations.Int64Class:   "int64",
+		declarations.Uint8Class:   "uint8",
+		declarations.Uint16Class:  "uint16",
+		declarations.Uint32Class:  "uint32",
+		declarations.Uint64Class:  "uint64",
 	}
-	simpleTypeClassDeserializationMapping = map[declarations.TypeClass]string {
-		declarations.BoolClass: "DeserializeBool",
-		declarations.StringClass: "DeserializeString",
-		declarations.BinaryClass: "DeserializeBinary",
+	simpleTypeClassDeserializationMapping = map[declarations.TypeClass]string{
+		declarations.BoolClass:    "DeserializeBool",
+		declarations.StringClass:  "DeserializeString",
+		declarations.BinaryClass:  "DeserializeBinary",
 		declarations.Float32Class: "DeserializeFloat32",
 		declarations.Float64Class: "DeserializeFloat64",
-		declarations.Int8Class: "DeserializeInt8",
-		declarations.Int16Class: "DeserializeInt16",
-		declarations.Int32Class: "DeserializeInt32",
-		declarations.Int64Class: "DeserializeInt64",
-		declarations.Uint8Class: "DeserializeUint8",
-		declarations.Uint16Class: "DeserializeUint16",
-		declarations.Uint32Class: "DeserializeUint32",
-		declarations.Uint64Class: "DeserializeUint64",
+		declarations.Int8Class:    "DeserializeInt8",
+		declarations.Int16Class:   "DeserializeInt16",
+		declarations.Int32Class:   "DeserializeInt32",
+		declarations.Int64Class:   "DeserializeInt64",
+		declarations.Uint8Class:   "DeserializeUint8",
+		declarations.Uint16Class:  "DeserializeUint16",
+		declarations.Uint32Class:  "DeserializeUint32",
+		declarations.Uint64Class:  "DeserializeUint64",
 	}
 )
 
@@ -46,7 +46,7 @@ func documentationHelper(documentation []string, indentation int) string {
 
 	prefix := fmt.Sprintf("%s//", strings.Repeat("\t", indentation))
 	wrapper := utils.NewSimpleTextWrapper(79 - len(prefix) - 1)
-	lines := make([]string, 0, len(documentation) * 2)
+	lines := make([]string, 0, len(documentation)*2)
 
 	for _, paragraph := range documentation {
 		if len(lines) > 0 {
@@ -157,7 +157,7 @@ func structFieldDeserializationCodeHelper(structDecl *declarations.Struct, field
 		err = fmt.Errorf("invalid value for field %s in struct %s")
 	}
 	return
-}`, field.Name, method, field.Index - 1, field.Name, structDecl.Name), indentation)
+}`, field.Name, method, field.Index-1, field.Name, structDecl.Name), indentation)
 	} else {
 		return ""
 	}
@@ -357,13 +357,13 @@ func serializationCodeHelper(typeDecl declarations.Type) string {
 }
 
 func structSerializationCodeHelper(structDecl *declarations.Struct) string {
-	parts := make([]string, 0, 2 + len(structDecl.Fields))
+	parts := make([]string, 0, 2+len(structDecl.Fields))
 
 	parts = append(parts, fmt.Sprintf(`	serArr := make([]interface{}, %d)`, structDecl.SerializedLength()))
 
 	for _, field := range structDecl.FieldsSortedByIndex() {
 		parts = append(parts, fmt.Sprintf(`	// Serialize %s.
-%s`, field.Name, typeSerializationCodeHelper(field.Type, fmt.Sprintf("s.%s", field.Name), fmt.Sprintf("serArr[%d]", field.Index - 1), 1)))
+%s`, field.Name, typeSerializationCodeHelper(field.Type, fmt.Sprintf("s.%s", field.Name), fmt.Sprintf("serArr[%d]", field.Index-1), 1)))
 	}
 
 	parts = append(parts, `	ser = serArr
