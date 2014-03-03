@@ -23,7 +23,7 @@ src/entangle/data/assets.go: bin/go-bindata $(DATA_SOURCE)
 		-nocompress \
 		-prefix="data/" \
 		-o="src/entangle/data/assets.go" \
-		-pkg="data" /
+		-pkg="data" \
 		data/...
 
 bin/go-bindata: src/github.com/jteeuwen/go-bindata
