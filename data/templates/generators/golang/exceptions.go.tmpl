@@ -6,10 +6,10 @@ import (
 {{if $interface.Exceptions}}
 var (
 {{range $index, $exc := $interface.ExceptionsSortedByName}}{{if $index}}{{if $exc.Documentation}}
-{{end}}{{end}}{{documentation $exc.Documentation 1}}	{{$exc.Name}} = goentangle.NewErrorDefinition("{{$interface.Name}}", "{{$exc.Name}}")
+{{end}}{{end}}{{documentation $exc.Documentation 1}}	{{$exc.Name}} = goentangle.NewExceptionDefinition("{{$interface.Name}}", "{{$exc.Name}}")
 {{end}})
 {{end}}
-func parseException(namespace, name, description string) goentangle.Error {
+func parseException(namespace, name, description string) goentangle.Exception {
 	switch namespace {
 	case "entangle":
 		switch name {
