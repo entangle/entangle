@@ -99,11 +99,26 @@ func (s *Struct) FieldsSortedByIndex() []*Field {
 
 // Minimum length of deserialized array.
 func (s *Struct) MinimumDeserializedLength() (minimum int) {
-	for i, field := range s.Fields {
-		if !field.Type.Nilable() {
-			minimum = i + 1
+	minIndex := uint(0)
+
+	for _, field := range s.Fields {
+		if !field.Type.Nilable() && minIndex < field.Index {
+			minIndex = field.Index
 		}
 	}
 
-	return
+	return int(minIndex)
+}
+
+// Length of serialized array.
+func (s *Struct) SerializedLength() (length int) {
+	maxIndex := uint(0)
+
+	for _, field := range s.Fields {
+		if field.Index > maxIndex {
+			maxIndex = field.Index
+		}
+	}
+
+	return int(maxIndex)
 }

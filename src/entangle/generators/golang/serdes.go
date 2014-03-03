@@ -85,6 +85,19 @@ func nameOfDeserializer(typeDecl declarations.Type) string {
 	return fmt.Sprintf("deserialize%s", suffix)
 }
 
+// Name of serializer for type.
+//
+// Returns an empty value if the type does not need a custom serializer.
+func nameOfSerializer(typeDecl declarations.Type) string {
+	suffix := suffixOfSerDes(typeDecl)
+
+	if suffix == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("serialize%s", suffix)
+}
+
 // Map a type to a serialization/deserialization map.
 func mapTypeToSerDesMap(typeDecl declarations.Type, m *map[string] declarations.Type) {
 	suffix := suffixOfSerDes(typeDecl)

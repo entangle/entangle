@@ -28,6 +28,15 @@ func (e {{.Name}}) Valid() bool {
 	return ok
 }
 
+func (e {{.Name}}) Serialize() (ser interface{}, err error) {
+	if !e.Valid() {
+		err = fmt.Errorf("invalid {{.Name}} value: %d", e)
+	} else {
+		ser = int64(e)
+	}
+	return
+}
+
 func Deserialize{{.Name}}(input interface{}) (e {{.Name}}, err error) {
 	var rawVal int64
 	if rawVal, err = goentangle.DeserializeInt64(input); err != nil {

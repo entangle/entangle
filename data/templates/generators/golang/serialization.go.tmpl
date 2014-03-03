@@ -1,3 +1,10 @@
-{{$interface := .Interface}}{{package $interface}}{{if .SerDesMap}}
-
-{{end}}
+{{$interface := .Interface}}{{package $interface}}
+{{if .SerDesMap}}
+import (
+	"errors"
+)
+{{range $suffix, $type := .SerDesMap}}
+func serialize{{$suffix}}(input {{nonNilableType $type}}) (ser interface{}, err error) {
+{{serializationCode $type}}
+}
+{{end}}{{end}}

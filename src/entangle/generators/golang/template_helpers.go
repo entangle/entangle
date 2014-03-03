@@ -163,6 +163,57 @@ func structFieldDeserializationCodeHelper(structDecl *declarations.Struct, field
 	}
 }
 
+func typeSerializationCodeHelper(typeDecl declarations.Type, source, target string, indentation int) string {
+	if typeDecl.Nilable() {
+		switch typeDecl.Class() {
+		case declarations.BoolClass, declarations.StringClass, declarations.BinaryClass, declarations.Float32Class, declarations.Float64Class, declarations.Int8Class, declarations.Int16Class, declarations.Int32Class, declarations.Int64Class, declarations.Uint8Class, declarations.Uint16Class, declarations.Uint32Class, declarations.Uint64Class:
+			return indent(fmt.Sprintf(`if %s != nil {
+	%s = *%s
+}`, source, target, source), indentation)
+
+		case declarations.StructClass, declarations.EnumClass:
+			return indent(fmt.Sprintf(`if %s != nil {
+	if %s, err = %s.Serialize(); err != nil {
+		return
+	}
+}`, source, target, source), indentation)
+
+		case declarations.ListClass, declarations.MapClass:
+			return indent(fmt.Sprintf(`if %s != nil {
+	if %s, err = %s(%s); err != nil {
+		return
+	}
+}`, source, target, nameOfSerializer(typeDecl), source), indentation)
+
+		default:
+			panic("Unsupport type")
+		}
+	} else {
+		switch typeDecl.Class() {
+		case declarations.BoolClass, declarations.StringClass, declarations.BinaryClass, declarations.Float32Class, declarations.Float64Class, declarations.Int8Class, declarations.Int16Class, declarations.Int32Class, declarations.Int64Class, declarations.Uint8Class, declarations.Uint16Class, declarations.Uint32Class, declarations.Uint64Class:
+			return indent(fmt.Sprintf(`%s = %s`, target, source), indentation)
+
+		case declarations.StructClass, declarations.EnumClass:
+			return indent(fmt.Sprintf(`if %s, err = %s.Serialize(); err != nil {
+	return
+}`, target, source), indentation)
+
+		case declarations.ListClass, declarations.MapClass:
+			return indent(fmt.Sprintf(`if %s == nil {
+	err = errors.New("non-nilable type cannot be nil")
+	return
+}
+
+if %s, err = %s(%s); err != nil {
+	return
+}`, source, target, nameOfSerializer(typeDecl), source), indentation)
+
+		default:
+			panic("Unsupport type")
+		}
+	}
+}
+
 func deserializationCodeHelper(typeDecl declarations.Type) string {
 	parts := make([]string, 0, 8)
 
@@ -262,4 +313,61 @@ func deserializationCodeHelper(typeDecl declarations.Type) string {
 	default:
 		panic("Cannot generate deserialization code for type")
 	}
+}
+
+func serializationCodeHelper(typeDecl declarations.Type) string {
+	switch typeDecl.Class() {
+	case declarations.ListClass:
+		listDecl := typeDecl.(*declarations.ListType)
+		elemType := listDecl.ElementType()
+
+		return fmt.Sprintf(`	serArr := make([]interface{}, len(input))
+
+	for i, des := range input {
+%s
+	}
+
+	ser = serArr
+	return`, typeSerializationCodeHelper(elemType, "des", "serArr[i]", 2))
+
+	case declarations.MapClass:
+		mapDecl := typeDecl.(*declarations.MapType)
+		keyType := mapDecl.KeyType()
+		valueType := mapDecl.ValueType()
+
+		return fmt.Sprintf(`	serMap := make(map[interface{}]interface{}, len(input))
+
+	for desKey, desValue := range input {
+		var serKey interface{}
+		var serValue interface{}
+
+%s
+
+%s
+
+		serMap[serKey] = serValue
+	}
+
+	ser = serMap
+	return`, typeSerializationCodeHelper(keyType, "desKey", "serKey", 2), typeSerializationCodeHelper(valueType, "desValue", "serValue", 2))
+
+	default:
+		panic("Cannot generate deserialization code for type")
+	}
+}
+
+func structSerializationCodeHelper(structDecl *declarations.Struct) string {
+	parts := make([]string, 0, 2 + len(structDecl.Fields))
+
+	parts = append(parts, fmt.Sprintf(`	serArr := make([]interface{}, %d)`, structDecl.SerializedLength()))
+
+	for _, field := range structDecl.FieldsSortedByIndex() {
+		parts = append(parts, fmt.Sprintf(`	// Serialize %s.
+%s`, field.Name, typeSerializationCodeHelper(field.Type, fmt.Sprintf("s.%s", field.Name), fmt.Sprintf("serArr[%d]", field.Index - 1), 1)))
+	}
+
+	parts = append(parts, `	ser = serArr
+	return`)
+
+	return strings.Join(parts, "\n\n")
 }

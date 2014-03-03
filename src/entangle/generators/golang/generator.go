@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"bytes"
 	"fmt"
 	"entangle/data"
 	"entangle/declarations"
@@ -8,6 +9,7 @@ import (
 	"text/template"
 	"path/filepath"
 	"os"
+	"code.google.com/p/go.tools/imports"
 )
 
 // Go generator.
@@ -32,6 +34,8 @@ func NewGenerator() (gen generators.Generator, err error) {
 		"nonNilableType": nonNilableTypeHelper,
 		"canSkipBeforeField": canSkipBeforeFieldHelper,
 		"deserializationCode": deserializationCodeHelper,
+		"serializationCode": serializationCodeHelper,
+		"structSerializationCode": structSerializationCodeHelper,
 		"typeDeserializationMethod": typeDeserializationMethodHelper,
 		"fieldIndex": func(fieldDecl *declarations.Field) string { return fmt.Sprintf("%d", fieldDecl.Index - 1) },
 	}
@@ -86,24 +90,45 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 		{ "deserialization.go", g.deserializationTmpl },
 		{ "serialization.go", g.serializationTmpl },
 	} {
-		var outputFile *os.File
+		filePath := filepath.Join(outputPath, output.Filename)
 
-		if outputFile, err = os.Create(filepath.Join(outputPath, output.Filename)); err != nil {
-			return
-		}
+		// Generate the output file.
+		buffer := new(bytes.Buffer)
 
-		if err = output.Template.Execute(outputFile, struct {
+		if err = output.Template.Execute(buffer, struct {
 			Interface *declarations.Interface
 			SerDesMap map[string]declarations.Type
 		} {
 			Interface: interfaceDecl,
 			SerDesMap: serDesMap,
 		}); err != nil {
-			outputFile.Close()
 			return
 		}
 
-		outputFile.Close()
+		// Clean the output file by running it through imports.
+		outputData, cleanErr := imports.Process(filePath, buffer.Bytes(), &imports.Options {
+			Fragment: false,
+			AllErrors: true,
+			Comments: true,
+			TabIndent: true,
+			TabWidth: 4,
+		})
+		if cleanErr != nil {
+			err = fmt.Errorf("error cleaning generated %s: %v", filePath, cleanErr)
+		}
+
+		// Write the output file.
+		var outputFile *os.File
+
+		if outputFile, err = os.Create(filePath); err != nil {
+			return
+		}
+		defer outputFile.Close()
+
+		var n int
+		if n, err = outputFile.Write(outputData); err != nil || n != len(outputData) {
+			return
+		}
 	}
 
 	return

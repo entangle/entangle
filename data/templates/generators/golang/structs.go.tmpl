@@ -10,6 +10,10 @@ import (
 {{end}}{{end}}{{documentation $field.Documentation 1}}	{{$field.Name}} {{type $field.Type}}
 {{end}}}
 
+func (s {{.Name}}) Serialize() (ser interface{}, err error) {
+{{structSerializationCode .}}
+}
+
 func Deserialize{{.Name}}(input interface{}) (des {{.Name}}, err error) {
 	var ser []interface{}
 	var serOk bool

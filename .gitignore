@@ -1,5 +1,6 @@
 # Dependencies.
 /src/github.com
+/src/code.google.com
 
 # Build output.
 /bin
