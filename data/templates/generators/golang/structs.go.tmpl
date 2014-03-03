@@ -1,4 +1,4 @@
-{{$interface := .Interface}}{{package $interface}}{{if $interface.Structs}}
+{{$interface := .Interface}}package {{.PackageName}}{{if $interface.Structs}}
 
 import (
 	"errors"

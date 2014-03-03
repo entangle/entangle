@@ -15,6 +15,7 @@ import (
 
 // Go generator.
 type generator struct {
+	options                    *Options
 	exceptionsTmpl             *template.Template
 	servicesTmpl               *template.Template
 	serviceImplementationsTmpl *template.Template
@@ -27,13 +28,14 @@ type generator struct {
 }
 
 // New generator.
-func NewGenerator() (gen generators.Generator, err error) {
-	g := &generator{}
+func NewGenerator(options *Options) (gen generators.Generator, err error) {
+	g := &generator{
+		options: options,
+	}
 
 	// Define function mapping.
 	funcMap := template.FuncMap{
 		"documentation":             documentationHelper,
-		"package":                   packageHelper,
 		"type":                      typeHelper,
 		"nonNilableType":            nonNilableTypeHelper,
 		"canSkipBeforeField":        canSkipBeforeFieldHelper,
@@ -99,6 +101,17 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 	// Build a serialization/deserialization map for helper functions.
 	serDesMap := buildSerDesMap(interfaceDecl)
 
+	// Set up the context.
+	ctx := &context {
+		Interface: interfaceDecl,
+		SerDesMap: serDesMap,
+		PackageName: interfaceDecl.Name,
+	}
+
+	if g.options.Package != "" {
+		ctx.PackageName = g.options.Package
+	}
+
 	// Generate output files.
 	for _, output := range []struct {
 		Filename string
@@ -119,13 +132,7 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 		// Generate the output file.
 		buffer := new(bytes.Buffer)
 
-		if err = output.Template.Execute(buffer, struct {
-			Interface *declarations.Interface
-			SerDesMap map[string]declarations.Type
-		}{
-			Interface: interfaceDecl,
-			SerDesMap: serDesMap,
-		}); err != nil {
+		if err = output.Template.Execute(buffer, ctx); err != nil {
 			return
 		}
 

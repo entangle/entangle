@@ -10,17 +10,22 @@ PACKAGES := \
 	entangle/generators/golang
 SOURCE := $(wildcard $(addsuffix /*.go, $(addprefix src/, $(PACKAGES)))) src/entangle/data/assets.go
 LIBRARIES := \
-	code.google.com/p/go.tools/imports
+	code.google.com/p/go.tools/imports \
+	github.com/mitchellh/cli
 LIBRARIES_DIRS := $(addprefix src/, $(LIBRARIES))
 DATA_SOURCE := $(shell find data -type f ! -name '.*')
 PREFIX := ${_prefix}
+
+GIT_COMMIT := $(shell git rev-parse HEAD)
+
+GO_FLAGS := -ldflags "-X entangle.GitCommit $(GIT_COMMIT)"
 
 export GOPATH=$(shell pwd)
 
 all: entangle
 
 entangle: $(SOURCE) $(LIBRARIES_DIRS)
-	@go build -v -o bin/entangle cmds/entangle
+	@go build -v $(GO_FLAGS) -o bin/entangle cmds/entangle
 
 src/entangle/data/assets.go: bin/go-bindata $(DATA_SOURCE)
 	@./bin/go-bindata \
@@ -40,7 +45,7 @@ $(LIBRARIES_DIRS):
 	@go get $(@:src/%=%)
 
 test: all
-	@go test -v $(PACKAGES)
+	@go test -v $(GO_FLAGS) $(PACKAGES)
 
 format:
 	@gofmt -l -w $(SOURCE)

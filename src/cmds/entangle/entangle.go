@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"entangle/errors"
 	"entangle/parser"
@@ -9,7 +10,8 @@ import (
 	"fmt"
 	"os"
 )
-
+*/
+/*
 func main() {
 	f, err := os.Open("test.entangle")
 	if err != nil {
@@ -70,3 +72,5 @@ func main() {
 		}
 	}
 }
+
+*/

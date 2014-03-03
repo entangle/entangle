@@ -45,7 +45,6 @@ func (p *sourceParser) parse() (err error) {
 			err = p.parseErrorHere("unexpected end of file in definition file, expected 'definition'")
 
 		default:
-			// Unexpected.
 			err = p.parseErrorHere("unexpected token, expected 'definition'")
 		}
 
@@ -92,8 +91,7 @@ func (p *sourceParser) parse() (err error) {
 			err = p.parseService()
 
 		default:
-			// Unexpected.
-			p.parseErrorHere("unexpected token")
+			err = p.parseErrorHere("unexpected token")
 		}
 
 		if err != nil {

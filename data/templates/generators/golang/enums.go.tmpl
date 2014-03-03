@@ -1,4 +1,4 @@
-{{$interface := .Interface}}{{package $interface}}{{if $interface.Enums}}
+{{$interface := .Interface}}package {{.PackageName}}{{if $interface.Enums}}
 
 import (
 	"fmt"

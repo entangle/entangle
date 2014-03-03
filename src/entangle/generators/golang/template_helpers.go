@@ -67,10 +67,6 @@ func documentationHelper(documentation []string, indentation int) string {
 	return fmt.Sprintf("%s\n", strings.Join(lines, "\n"))
 }
 
-func packageHelper(interfaceDecl *declarations.Interface) string {
-	return fmt.Sprintf("package %s", interfaceDecl.Name)
-}
-
 func typeHelper(typeDecl declarations.Type) string {
 	star := ""
 	if typeDecl.Nilable() {
