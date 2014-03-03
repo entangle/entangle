@@ -2,4 +2,4 @@ language: go
 go:
   - 1.2
   - tip
-script: make test
+script: ./configure && make test

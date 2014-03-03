@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+# Parse the arguments.
+prefix="/usr/local"
+
+for i in "$@"
+do
+    case $i in
+        -p=*|--prefix=*)
+            prefix=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+            ;;
+        -h|--help)
+            echo "\`configure\` configures Entangle.
+
+Usage: ./configure [OPTION]...
+
+Defaults for the options are specified in brackets.
+
+Configuration:
+  -h, --help            Display this help message and exit
+
+Installation directories:
+  -p, --prefix=PREFIX   Install in PREFIX [/usr/local]" >&2
+            exit 1
+            ;;
+        *)
+            echo "Unknown option: $i" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# Generate the Makefile.
+template=$(<Makefile.in)
+makefile=${template/\$\{_prefix\}/"${prefix}"}
+echo "${makefile}" > Makefile

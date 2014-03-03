@@ -13,6 +13,7 @@ LIBRARIES := \
 	code.google.com/p/go.tools/imports
 LIBRARIES_DIRS := $(addprefix src/, $(LIBRARIES))
 DATA_SOURCE := $(shell find data -type f ! -name '.*')
+PREFIX := ${_prefix}
 
 export GOPATH=$(shell pwd)
 
@@ -44,7 +45,10 @@ test: all
 format:
 	@gofmt -l -w $(SOURCE)
 
+install: all
+	@cp bin/entangle "$(PREFIX)/bin/entangle"
+
 clean:
 	@rm -rf bin pkg src/github.com src/entangle/data/assets.go
 
-.PHONY: test clean
+.PHONY: test clean install

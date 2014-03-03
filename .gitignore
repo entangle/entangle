@@ -3,6 +3,7 @@
 /src/code.google.com
 
 # Build output.
+/Makefile
 /bin
 /pkg
 /dist
