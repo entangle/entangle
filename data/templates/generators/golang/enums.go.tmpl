@@ -1,0 +1,40 @@
+{{$interface := .Interface}}{{package $interface}}{{if $interface.Enums}}
+
+import (
+	"fmt"
+	"github.com/entangle/goentangle"
+){{end}}{{range $interface.Enums}}{{$enum := .}}
+
+{{documentation .Documentation 0}}type {{.Name}} int64{{if .Values}}
+
+var (
+{{range $index, $val := .ValuesSortedByValue}}{{if $index}}{{if $val.Documentation}}
+{{end}}{{end}}{{documentation $val.Documentation 1}}	{{$val.Name}} {{$enum.Name}} = {{$val.Value}}
+{{end}}){{end}}
+
+var mappingFor{{.Name}} = map[{{.Name}}]string {{"{"}}{{range $index, $val := .ValuesSortedByValue}}{{if not $index}}
+{{end}}	{{$val.Name}}: "{{$val.Name}}",
+{{end}}}
+
+func (e {{.Name}}) String() string {
+	if name, ok := mappingFor{{.Name}}[e]; ok {
+		return name
+	}
+	return fmt.Sprintf("<invalid: %d>", e)
+}
+
+func (e {{.Name}}) Valid() bool {
+	_, ok := mappingFor{{.Name}}[e]
+	return ok
+}
+
+func Deserialize{{.Name}}(input interface{}) (e {{.Name}}, err error) {
+	var rawVal int64
+	if rawVal, err = goentangle.DeserializeInt64(input); err != nil {
+		return
+	}
+	if e = {{.Name}}(rawVal); !e.Valid() {
+		err = goentangle.ErrDeserializationError
+	}
+	return
+}{{end}}

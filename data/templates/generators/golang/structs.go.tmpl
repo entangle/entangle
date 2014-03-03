@@ -1,0 +1,56 @@
+{{$interface := .Interface}}{{package $interface}}{{if $interface.Structs}}
+
+import (
+	"errors"
+	"github.com/entangle/goentangle"
+)
+{{end}}{{range $interface.Structs}}{{$struct := .}}{{$minimumDeserializedLength := .MinimumDeserializedLength}}
+{{documentation .Documentation 0}}type {{.Name}} struct {
+{{range $index, $field := .FieldsSortedByIndex}}{{if $index}}{{if $field.Documentation}}
+{{end}}{{end}}{{documentation $field.Documentation 1}}	{{$field.Name}} {{type $field.Type}}
+{{end}}}
+
+func Deserialize{{.Name}}(input interface{}) (des {{.Name}}, err error) {
+	var ser []interface{}
+	var serOk bool
+	if ser, serOk = input.([]interface{}); !serOk {
+		err = errors.New("invalid data for {{$struct.Name}}")
+		return
+	}
+
+	if len(ser) < {{$minimumDeserializedLength}} {
+		err = errors.New("not enough arguments to deserialize {{$struct.Name}}")
+		return
+	}
+{{range $index, $field := .FieldsSortedByIndex}}
+	// Deserialize {{$field.Name}}.
+{{if canSkipBeforeField $field $minimumDeserializedLength}}	if len(ser) < {{$field.Index}} {
+	     return
+	}
+
+{{end}}{{if $field.Type.Nilable}}	if ser[{{fieldIndex $field}}] != nil {
+		var desErr error
+		var desValue {{nonNilableType $field.Type}}
+		if desValue, desErr = {{typeDeserializationMethod $field.Type}}(ser[{{fieldIndex $field}}]); desErr != nil {
+			if desErr == goentangle.ErrDeserializationError {
+				err = errors.New("invalid value for field {{$field.Name}} in {{$struct.Name}}")
+			} else {
+				err = desErr
+			}
+			return
+		}
+
+		des.{{$field.Name}} = &desValue
+	}{{else}}	if ser[{{fieldIndex $field}}] == nil {
+		err = errors.New("{{$field.Name}} in {{$struct.Name}} cannot be nil")
+		return
+	} else if des.{{$field.Name}}, err = {{typeDeserializationMethod $field.Type}}(ser[{{fieldIndex $field}}]); err != nil {
+		if err == goentangle.ErrDeserializationError {
+			err = errors.New("invalid value for field {{$field.Name}} in {{$struct.Name}}")
+		}
+		return
+	}{{end}}
+{{end}}
+	return
+}
+{{end}}

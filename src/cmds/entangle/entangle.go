@@ -4,6 +4,8 @@ import (
 	"entangle/errors"
 	"entangle/parser"
 	"entangle/source"
+	"entangle/generators"
+	"entangle/generators/golang"
 	"fmt"
 	"os"
 )
@@ -30,4 +32,41 @@ func main() {
 	}
 
 	fmt.Println(interfaceDecl)
+
+	//
+	generators := make([]generators.Generator, 0)
+
+	gen, err := golang.NewGenerator()
+	if err != nil {
+		panic(err)
+	}
+
+	generators = append(generators, gen)
+
+	//
+	outputPath := "_testing/src/something"
+
+	// Make sure the output directory exists.
+	var outputPathStat os.FileInfo
+	var statErr error
+
+	if outputPathStat, statErr = os.Stat(outputPath); statErr != nil {
+		if !os.IsNotExist(statErr) {
+			return
+		}
+
+		if statErr = os.MkdirAll(outputPath, 0777); statErr != nil {
+			return
+		}
+	} else if !outputPathStat.Mode().IsDir() {
+		err = fmt.Errorf("output path '%s' is not a directory", outputPath)
+		return
+	}
+
+	for _, gen := range generators {
+		err = gen.Generate(interfaceDecl, outputPath)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

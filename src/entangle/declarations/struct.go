@@ -1,5 +1,9 @@
 package declarations
 
+import (
+	"sort"
+)
+
 // Struct declaration.
 type Struct struct {
 	// Struct name.
@@ -76,4 +80,30 @@ func (s *Struct) FieldIndexInUse(index uint) bool {
 func (s *Struct) FieldNameInUse(name string) bool {
 	_, inUse := s.fieldNameMapping[name]
 	return inUse
+}
+
+// Sorted list of fields by index.
+func (s *Struct) FieldsSortedByIndex() []*Field {
+	unsorted := make([]*Field, len(s.Fields))
+
+	idx := 0
+	for _, exc := range s.Fields {
+		unsorted[idx] = exc
+		idx++
+	}
+
+	sort.Sort(fieldsByIndex(unsorted))
+
+	return unsorted
+}
+
+// Minimum length of deserialized array.
+func (s *Struct) MinimumDeserializedLength() (minimum int) {
+	for i, field := range s.Fields {
+		if !field.Type.Nilable() {
+			minimum = i + 1
+		}
+	}
+
+	return
 }

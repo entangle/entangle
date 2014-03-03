@@ -2,10 +2,14 @@ package declarations
 
 import (
 	"entangle/utils"
+	"sort"
 )
 
 // Interface declaration.
 type Interface struct {
+	// Interface name.
+	Name string
+
 	// Struct declarations.
 	Structs map[string]*Struct
 
@@ -65,4 +69,34 @@ func (i *Interface) NameInUse(name string) bool {
 // Mark a name as used.
 func (i *Interface) MarkNameAsUsed(name string) {
 	i.usedNames.Add(name)
+}
+
+// Sorted list of exceptions by name.
+func (i *Interface) ExceptionsSortedByName() []*Exception {
+	unsorted := make([]*Exception, len(i.Exceptions))
+
+	idx := 0
+	for _, exc := range i.Exceptions {
+		unsorted[idx] = exc
+		idx++
+	}
+
+	sort.Sort(exceptionsByName(unsorted))
+
+	return unsorted
+}
+
+// Sorted list of enumerations by name.
+func (i *Interface) EnumsSortedByName() []*Enum {
+	unsorted := make([]*Enum, len(i.Enums))
+
+	idx := 0
+	for _, exc := range i.Enums {
+		unsorted[idx] = exc
+		idx++
+	}
+
+	sort.Sort(enumsByName(unsorted))
+
+	return unsorted
 }

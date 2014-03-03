@@ -1,5 +1,9 @@
 package declarations
 
+import (
+	"sort"
+)
+
 // Enumeration value declaration.
 type EnumValue struct {
 	// Value.
@@ -48,4 +52,49 @@ func (e *Enum) AddValue(value int64, name string, documentation []string) {
 func (e *Enum) ValueInUse(value int64) bool {
 	_, inUse := e.Values[value]
 	return inUse
+}
+
+// Enums by name.
+type enumsByName []*Enum
+
+func (l enumsByName) Len() int {
+	return len(l)
+}
+
+func (l enumsByName) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (l enumsByName) Less(i, j int) bool {
+	return l[i].Name < l[j].Name
+}
+
+// Enum values by value.
+type enumValuesByValue []EnumValue
+
+func (l enumValuesByValue) Len() int {
+	return len(l)
+}
+
+func (l enumValuesByValue) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (l enumValuesByValue) Less(i, j int) bool {
+	return l[i].Value < l[j].Value
+}
+
+// Sorted list of enum values by value.
+func (e *Enum) ValuesSortedByValue() []EnumValue {
+	unsorted := make([]EnumValue, len(e.Values))
+
+	idx := 0
+	for _, val := range e.Values {
+		unsorted[idx] = val
+		idx++
+	}
+
+	sort.Sort(enumValuesByValue(unsorted))
+
+	return unsorted
 }

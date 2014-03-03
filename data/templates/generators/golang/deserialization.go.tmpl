@@ -1,0 +1,10 @@
+{{$interface := .Interface}}{{package $interface}}
+{{if .SerDesMap}}
+import (
+	"github.com/entangle/goentangle"
+)
+{{range $suffix, $type := .SerDesMap}}
+func deserialize{{$suffix}}(input interface{}) (des {{nonNilableType $type}}, err error) {
+{{deserializationCode $type}}
+}
+{{end}}{{end}}

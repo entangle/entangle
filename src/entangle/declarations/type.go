@@ -63,6 +63,10 @@ func (s *StructType) Nilable() bool {
 	return s.nilable
 }
 
+func (s *StructType) Struct() *Struct {
+	return s.decl
+}
+
 // New struct type.
 func NewStructType(decl *Struct, nilable bool) Type {
 	return &StructType{
@@ -83,6 +87,10 @@ func (s *EnumType) Class() TypeClass {
 
 func (s *EnumType) Nilable() bool {
 	return s.nilable
+}
+
+func (s *EnumType) Enum() *Enum {
+	return s.decl
 }
 
 // New enum type.

@@ -1,0 +1,31 @@
+{{$interface := .Interface}}{{package $interface}}
+
+import (
+	"github.com/entangle/goentangle"
+)
+{{if $interface.Exceptions}}
+var (
+{{range $index, $exc := $interface.ExceptionsSortedByName}}{{if $index}}{{if $exc.Documentation}}
+{{end}}{{end}}{{documentation $exc.Documentation 1}}	{{$exc.Name}} = goentangle.NewErrorDefinition("{{$interface.Name}}", "{{$exc.Name}}")
+{{end}})
+{{end}}
+func parseException(namespace, name, description string) goentangle.Error {
+	switch namespace {
+	case "entangle":
+		switch name {
+		case "BadMessage":
+			return goentangle.BadMessageError.New(description)
+		case "InternalServerError":
+			return goentangle.InternalServerError.New(description)
+		case "UnknownMethod":
+			return goentangle.UnknownMethodError.New(description)
+		}
+{{if $interface.Exceptions}}	case "{{$interface.Name}}":
+		switch name {
+{{range $interface.Exceptions}}		case "{{.Name}}":
+			return {{.Name}}.New(description)
+{{end}}		}
+{{end}}	}
+
+	return goentangle.UnknownExceptionError.New(description)
+}

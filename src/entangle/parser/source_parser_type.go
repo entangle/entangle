@@ -63,8 +63,23 @@ func (p *sourceParser) parseType(declarationDesc, self string) (decl declaration
 			return
 		}
 
-		// Parse the key type.
+		// Parse the key type and make sure it's not a disallowed type.
 		if keyType, err = p.parseType(declarationDesc, ""); err != nil {
+			return
+		}
+
+		switch keyType.Class() {
+		case declarations.StructClass:
+			err = p.parseErrorHere("structs are not allowed as map keys")
+
+		case declarations.MapClass:
+			err = p.parseErrorHere("maps are not allowed as map keys")
+
+		case declarations.ListClass:
+			err = p.parseErrorHere("arrays are not allowed as map keys")
+		}
+
+		if err != nil {
 			return
 		}
 

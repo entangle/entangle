@@ -6,7 +6,8 @@ PACKAGES := \
 	entangle/declarations \
 	entangle/utils \
 	entangle/term \
-	entangle/generators
+	entangle/generators \
+	entangle/generators/golang
 SOURCE := $(wildcard $(addsuffix /*.go, $(addprefix src/, $(PACKAGES)))) src/entangle/data/assets.go
 DATA_SOURCE := $(shell find data -type f ! -name '.*')
 
@@ -22,6 +23,7 @@ src/entangle/data/assets.go: bin/go-bindata $(DATA_SOURCE)
 		-nocompress \
 		-prefix="data/" \
 		-o="src/entangle/data/assets.go" \
+		-pkg="data" /
 		data/...
 
 bin/go-bindata: src/github.com/jteeuwen/go-bindata

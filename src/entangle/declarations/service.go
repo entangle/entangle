@@ -1,5 +1,9 @@
 package declarations
 
+import (
+	"sort"
+)
+
 // Service declaration.
 type Service struct {
 	// Service name.
@@ -54,4 +58,19 @@ func (s *Service) Inherit(name string, documentation []string) *Service {
 func (s *Service) FunctionNameInUse(name string) bool {
 	_, inUse := s.functionNameMapping[name]
 	return inUse
+}
+
+// Sorted list of functions by name.
+func (s *Service) FunctionsSortedByName() []*Function {
+	unsorted := make([]*Function, len(s.Functions))
+
+	idx := 0
+	for _, exc := range s.Functions {
+		unsorted[idx] = exc
+		idx++
+	}
+
+	sort.Sort(functionsByName(unsorted))
+
+	return unsorted
 }

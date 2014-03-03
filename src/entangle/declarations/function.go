@@ -1,5 +1,9 @@
 package declarations
 
+import (
+	"sort"
+)
+
 // Function argument declaration.
 type FunctionArgument struct {
 	// Index.
@@ -74,4 +78,49 @@ func (s *Function) ArgumentIndexInUse(index uint) bool {
 func (s *Function) ArgumentNameInUse(name string) bool {
 	_, inUse := s.argumentNameMapping[name]
 	return inUse
+}
+
+// Functions by name.
+type functionsByName []*Function
+
+func (l functionsByName) Len() int {
+	return len(l)
+}
+
+func (l functionsByName) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (l functionsByName) Less(i, j int) bool {
+	return l[i].Name < l[j].Name
+}
+
+// Function arguments by index.
+type functionArgumentsByIndex []*FunctionArgument
+
+func (l functionArgumentsByIndex) Len() int {
+	return len(l)
+}
+
+func (l functionArgumentsByIndex) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+func (l functionArgumentsByIndex) Less(i, j int) bool {
+	return l[i].Index < l[j].Index
+}
+
+// Sorted list of function arguments by index.
+func (f *Function) ArgumentsSortedByIndex() []*FunctionArgument {
+	unsorted := make([]*FunctionArgument, len(f.Arguments))
+
+	idx := 0
+	for _, exc := range f.Arguments {
+		unsorted[idx] = exc
+		idx++
+	}
+
+	sort.Sort(functionArgumentsByIndex(unsorted))
+
+	return unsorted
 }
