@@ -10,16 +10,20 @@ import (
 	"path/filepath"
 	"os"
 	"code.google.com/p/go.tools/imports"
+	"strings"
 )
 
 // Go generator.
 type generator struct {
 	exceptionsTmpl *template.Template
 	servicesTmpl *template.Template
+	serviceImplementationsTmpl *template.Template
 	enumsTmpl *template.Template
 	structsTmpl *template.Template
 	deserializationTmpl *template.Template
 	serializationTmpl *template.Template
+	serversTmpl *template.Template
+	clientsTmpl *template.Template
 }
 
 // New generator.
@@ -37,7 +41,22 @@ func NewGenerator() (gen generators.Generator, err error) {
 		"serializationCode": serializationCodeHelper,
 		"structSerializationCode": structSerializationCodeHelper,
 		"typeDeserializationMethod": typeDeserializationMethodHelper,
-		"fieldIndex": func(fieldDecl *declarations.Field) string { return fmt.Sprintf("%d", fieldDecl.Index - 1) },
+		"typeSerializationCode": typeSerializationCodeHelper,
+		"fieldIndex": func(fieldDecl *declarations.Field) string {
+			return fmt.Sprintf("%d", fieldDecl.Index - 1)
+		},
+		"argIndex": func(arg *declarations.FunctionArgument) string {
+			return fmt.Sprintf("%d", arg.Index - 1)
+		},
+		"lowerFirst": func(input string) string {
+			if input == "" {
+				return input
+			}
+			return strings.ToLower(string(input[0])) + input[1:]
+		},
+		"argumentOptional": func(arg *declarations.FunctionArgument, minimumDeserializedLength int) bool {
+			return arg.Index > uint(minimumDeserializedLength)
+		},
 	}
 
 	// Load templates.
@@ -47,10 +66,13 @@ func NewGenerator() (gen generators.Generator, err error) {
 	} {
 		{ "exceptions.go.tmpl", &g.exceptionsTmpl },
 		{ "services.go.tmpl", &g.servicesTmpl },
+		{ "service_implementations.go.tmpl", &g.serviceImplementationsTmpl },
 		{ "enums.go.tmpl", &g.enumsTmpl },
 		{ "structs.go.tmpl", &g.structsTmpl },
 		{ "deserialization.go.tmpl", &g.deserializationTmpl },
 		{ "serialization.go.tmpl", &g.serializationTmpl },
+		{ "servers.go.tmpl", &g.serversTmpl },
+		{ "clients.go.tmpl", &g.clientsTmpl },
 	} {
 		var src []byte
 		path := fmt.Sprintf("templates/generators/golang/%s", info.Filename)
@@ -76,7 +98,6 @@ func NewGenerator() (gen generators.Generator, err error) {
 func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath string) (err error) {
 	// Build a serialization/deserialization map for helper functions.
 	serDesMap := buildSerDesMap(interfaceDecl)
-	fmt.Println(serDesMap)
 
 	// Generate output files.
 	for _, output := range []struct {
@@ -85,10 +106,13 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 	} {
 		{ "exceptions.go", g.exceptionsTmpl },
 		{ "services.go", g.servicesTmpl },
+		{ "service_implementations.go", g.serviceImplementationsTmpl },
 		{ "enums.go", g.enumsTmpl },
 		{ "structs.go", g.structsTmpl },
 		{ "deserialization.go", g.deserializationTmpl },
 		{ "serialization.go", g.serializationTmpl },
+		{ "servers.go", g.serversTmpl },
+		{ "clients.go", g.clientsTmpl },
 	} {
 		filePath := filepath.Join(outputPath, output.Filename)
 
@@ -115,6 +139,7 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 		})
 		if cleanErr != nil {
 			err = fmt.Errorf("error cleaning generated %s: %v", filePath, cleanErr)
+			return
 		}
 
 		// Write the output file.

@@ -1,0 +1,180 @@
+{{$interface := .Interface}}{{package $interface}}
+
+import (
+	"log"
+	"sync"
+	"net"
+	"io"
+
+	"github.com/entangle/goentangle"
+)
+{{range $interface.Services}}
+{{$serverName := lowerFirst .Name | printf "%sServer"}}type {{$serverName}} struct {
+	implementation {{.Name}}Implementation
+	connWaitGroup sync.WaitGroup
+}
+
+func (s *{{$serverName}}) Accept(l net.Listener) (err error) {
+	var conn net.Conn
+	if conn, err = l.Accept(); err != nil {
+		return
+	}
+
+	go s.ServeConn(goentangle.NewConn(conn, conn.RemoteAddr().String()))
+
+	return
+}
+
+func (s *{{$serverName}}) Serve(l net.Listener) (err error) {
+	for {
+		var conn net.Conn
+		if conn, err = l.Accept(); err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+
+			return
+		}
+
+		s.connWaitGroup.Add(1)
+
+		go func(conn net.Conn) {
+			s.ServeConn(goentangle.NewConn(conn, conn.RemoteAddr().String()))
+			s.connWaitGroup.Done()
+		}(conn)
+	}
+}
+
+func (s *{{$serverName}}) Wait() {
+	s.connWaitGroup.Wait()
+}
+
+{{range .Functions}}func (s *{{$serverName}}) handle{{.Name}}(arguments []interface{}, trace goentangle.Trace) (serReturnValue interface{}, err error) {
+{{$minimumDeserializedLength := .MinimumDeserializedLength}}	if len(arguments) < {{$minimumDeserializedLength}} {
+		err = goentangle.BadMessageError.New("not enough arguments in call to {{.Name}}")
+		return
+	}
+
+{{range $index, $arg := .ArgumentsSortedByIndex}}var arg{{$arg.Index}} {{type $arg.Type}}
+
+	{{if argumentOptional $arg $minimumDeserializedLength}}if len(arguments) > {{argIndex $arg}} {{"{"}}{{end}}
+	{{if $arg.Type.Nilable}}if arguments[{{argIndex $arg}}] != nil {
+		var desErr error
+		var desValue {{nonNilableType $arg.Type}}
+		if desValue, desErr = {{typeDeserializationMethod $arg.Type}}(arguments[{{argIndex $arg}}]); desErr != nil {
+			err = goentangle.BadMessageError.New("invalid value for argument {{$arg.Name}}")
+			return
+		}
+
+		arg{{$arg.Index}} = &desValue
+	}{{else}}if arguments[{{argIndex $arg}}] == nil {
+		err = goentangle.BadMessageError.New("argument {{$arg.Name}} cannot be nil")
+		return
+	} else if arg{{$arg.Index}}, err = {{typeDeserializationMethod $arg.Type}}(arguments[{{argIndex $arg}}]); err != nil {
+		err = goentangle.BadMessageError.New("invalid value for argument {{$arg.Name}}")
+		return
+	}{{end}}
+	{{if argumentOptional $arg $minimumDeserializedLength}}{{"}"}}{{end}}
+
+{{end}}	{{if .ReturnType}}var returnValue {{type .ReturnType}}
+	returnValue, {{end}}err = s.implementation.{{.Name}}({{range $index, $arg := .ArgumentsSortedByIndex}}{{if $index}}, {{end}}arg{{$arg.Index}}{{end}}{{if .Arguments}}, {{end}}trace){{if .ReturnType}}
+
+{{typeSerializationCode .ReturnType "returnValue" "serReturnValue" 1}}{{end}}
+
+	return
+}
+
+{{end}}
+func (s *{{$serverName}}) handleRequest(conn *goentangle.Conn, msg goentangle.Message) {
+	// Determine the method name.
+	var methodName string
+	isNotification := false
+    var arguments []interface{}
+	var trace goentangle.Trace
+
+	switch msg.(type) {
+	case *goentangle.RequestMessage:
+		methodName = msg.(*goentangle.RequestMessage).Method
+        arguments = msg.(*goentangle.RequestMessage).Arguments
+		if msg.(*goentangle.RequestMessage).Trace {
+			trace = goentangle.NewTrace(fmt.Sprintf("{{$interface.Name}}.%s", methodName))
+		}
+
+	case *goentangle.NotificationMessage:
+		methodName = msg.(*goentangle.NotificationMessage).Method
+        arguments = msg.(*goentangle.NotificationMessage).Arguments
+		isNotification = true
+
+	default:
+		panic("non-request message supplied to handleRequest")
+	}
+
+	// Handle the method.
+	var err error
+	var result interface{}
+
+	switch methodName {
+{{range .Functions}}	case "{{.Name}}":
+		result, err = s.handle{{.Name}}(arguments, trace)
+
+{{end}}	default:
+		err = goentangle.UnknownMethodError.Newf("unknown method: %s", methodName)
+	}
+
+	if trace != nil {
+		trace.End()
+	}
+
+	// Write a response if necessary.
+	if isNotification {
+		return
+	}
+
+	if err != nil {
+		conn.RespondException(err, msg, trace)
+	} else if !isNotification {
+		conn.RespondResponse(result, msg, trace)
+	}
+}
+
+func (s *{{$serverName}}) ServeConn(conn *goentangle.Conn) {
+	defer conn.Close()
+	connDesc := conn.Description()
+
+	for {
+		// Receive a message.
+		msg, err := conn.Receive()
+
+		if err == goentangle.ErrBadMessage {
+			continue
+		} else if err != nil {
+			if err != io.EOF {
+				log.Printf("error receiving message from %s, closing connection: %v\n", connDesc, err)
+			}
+
+			break
+		}
+
+		// Handle the message based on the opcode.
+		switch msg.(type) {
+		case *goentangle.RequestMessage, *goentangle.NotificationMessage:
+			go s.handleRequest(conn, msg)
+
+		default:
+			log.Printf("non-request message received from %s\n", connDesc)
+			conn.RespondException(goentangle.BadMessageError.New("non-request message received"), msg, nil)
+			continue
+		}
+
+		if err != nil {
+			break
+		}
+	}
+}
+
+func New{{.Name}}Server(implementation {{.Name}}Implementation) goentangle.Server {
+	return &{{$serverName}} {
+		implementation: implementation,
+	}
+}
+{{end}}

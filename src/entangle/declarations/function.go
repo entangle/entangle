@@ -124,3 +124,16 @@ func (f *Function) ArgumentsSortedByIndex() []*FunctionArgument {
 
 	return unsorted
 }
+
+// Minimum length of deserialized array.
+func (f *Function) MinimumDeserializedLength() (minimum int) {
+	minIndex := uint(0)
+
+	for _, arg := range f.Arguments {
+		if !arg.Type.Nilable() && minIndex < arg.Index {
+			minIndex = arg.Index
+		}
+	}
+
+	return int(minIndex)
+}

@@ -1,0 +1,11 @@
+{{$interface := .Interface}}{{package $interface}}
+
+import (
+	"github.com/entangle/goentangle"
+)
+{{range $interface.Services}}
+{{documentation .Documentation 0}}type {{.Name}}Implementation interface {
+{{range $index, $fun := .FunctionsSortedByName}}{{if $index}}{{if $fun.Documentation}}
+{{end}}{{end}}{{documentation $fun.Documentation 1}}	{{.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}} {{type $arg.Type}}{{end}}{{if $fun.Arguments}}, {{end}}trace goentangle.Trace) {{if $fun.ReturnType}}({{type $fun.ReturnType}}, error){{else}}error{{end}}
+{{end}}}
+{{end}}
