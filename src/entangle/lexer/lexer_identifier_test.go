@@ -35,6 +35,7 @@ func TestLexerIdentifiers(t *testing.T) {
 		{"enum", token.Enum},
 		{"binary", token.Binary},
 		{"bool", token.Bool},
+		{"definition", token.Definition},
 		{"const", token.Const},
 	} {
 		// Valid character or end of file following identifier or keyword

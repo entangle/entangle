@@ -25,6 +25,7 @@ var keywordMap = map[string]token.TokenType{
 	"string":    token.String,
 	"exception": token.Exception,
 	"const":     token.Const,
+	"definition":token.Definition,
 	"map":       token.Map,
 }
 

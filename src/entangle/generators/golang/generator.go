@@ -74,8 +74,6 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 	serDesMap := buildSerDesMap(interfaceDecl)
 	fmt.Println(serDesMap)
 
-	interfaceDecl.Name = "something"
-
 	// Generate output files.
 	for _, output := range []struct {
 		Filename string

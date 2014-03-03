@@ -54,6 +54,7 @@ const (
 	/**
 	 * Definition tokens.
 	 */
+	Definition
 	Const
 	Enum
 	Struct
@@ -90,6 +91,7 @@ var tokenTypeName = map[TokenType]string{
 	Uint16:            "Uint16",
 	Uint32:            "Uint32",
 	Uint64:            "Uint64",
+	Definition:        "Definition",
 	Const:             "Const",
 	Enum:              "Enum",
 	Struct:            "Struct",
@@ -122,6 +124,7 @@ var tokenTypeRepresentation = map[TokenType]string{
 	Uint16:            "uint16",
 	Uint32:            "uint32",
 	Uint64:            "uint64",
+	Definition:        "definition",
 	Const:             "const",
 	Enum:              "enum",
 	Struct:            "struct",

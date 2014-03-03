@@ -28,6 +28,36 @@ func (p *sourceParser) next() (err error) {
 }
 
 func (p *sourceParser) parse() (err error) {
+	// Start out by reading the definition name.
+	for {
+		if err = p.next(); err != nil {
+			return
+		}
+
+		switch p.tok.Type {
+		case token.NewLine, token.DocumentationLine:
+			break
+
+		case token.Definition:
+			err = p.parseDefinition()
+
+		case token.EndOfFile:
+			err = p.parseErrorHere("unexpected end of file in definition file, expected 'definition'")
+
+		default:
+			// Unexpected.
+			err = p.parseErrorHere("unexpected token, expected 'definition'")
+		}
+
+		if err != nil {
+			return
+		}
+
+		if p.decl.Name != "" {
+			break
+		}
+	}
+
 	// Read through till the end.
 	for p.tok.Type != token.EndOfFile {
 		if err = p.next(); err != nil {

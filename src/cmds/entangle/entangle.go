@@ -44,7 +44,7 @@ func main() {
 	generators = append(generators, gen)
 
 	//
-	outputPath := "_testing/src/something"
+	outputPath := "_testing/src/users"
 
 	// Make sure the output directory exists.
 	var outputPathStat os.FileInfo
