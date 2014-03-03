@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/cli"
 	"os"
 	"strings"
+	"path/filepath"
 )
 
 // Target language definition.
@@ -168,26 +169,28 @@ func (c *GenerateCommand) Run(args []string) int {
 	}
 
 	// Make sure the output directory exists.
-	var outputPathStat os.FileInfo
+	interfaceOutputPath := filepath.Join(outputPath, interfaceDecl.Name)
+
+	var interfaceOutputPathStat os.FileInfo
 	var statErr error
 
-	if outputPathStat, statErr = os.Stat(outputPath); statErr != nil {
+	if interfaceOutputPathStat, statErr = os.Stat(interfaceOutputPath); statErr != nil {
 		if !os.IsNotExist(statErr) {
-			c.Ui.Error(fmt.Sprintf("Failed to determine status of output directory '%s': %v", outputPath, statErr))
+			c.Ui.Error(fmt.Sprintf("Failed to determine status of output directory '%s': %v", interfaceOutputPath, statErr))
 			return 1
 		}
 
-		if statErr = os.MkdirAll(outputPath, 0777); statErr != nil {
-			c.Ui.Error(fmt.Sprintf("Failed to create output directory '%s': %v", outputPath, statErr))
+		if statErr = os.MkdirAll(interfaceOutputPath, 0777); statErr != nil {
+			c.Ui.Error(fmt.Sprintf("Failed to create output directory '%s': %v", interfaceOutputPath, statErr))
 			return 1
 		}
-	} else if !outputPathStat.Mode().IsDir() {
-		c.Ui.Error(fmt.Sprintf("Output path is not a directory: %s", outputPath))
+	} else if !interfaceOutputPathStat.Mode().IsDir() {
+		c.Ui.Error(fmt.Sprintf("Output path is not a directory: %s", interfaceOutputPath))
 		return 1
 	}
 
 	// Perform the generation.
-	if err = targetLanguage.Generate(interfaceDecl, outputPath, options); err != nil {
+	if err = targetLanguage.Generate(interfaceDecl, interfaceOutputPath, options); err != nil {
 		c.Ui.Error(fmt.Sprintf("Failed to generate implementation: %v", err))
 		return 1
 	}

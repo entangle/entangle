@@ -108,10 +108,6 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 		PackageName: interfaceDecl.Name,
 	}
 
-	if g.options.Package != "" {
-		ctx.PackageName = g.options.Package
-	}
-
 	// Generate output files.
 	for _, output := range []struct {
 		Filename string
