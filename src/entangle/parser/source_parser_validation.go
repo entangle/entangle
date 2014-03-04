@@ -50,6 +50,10 @@ var reservedDefinitionNames = map[string]struct{}{
 	"entangle": struct{}{},
 }
 
+var reservedFunctionNames = map[string]struct{}{
+	"Close": struct{}{},
+}
+
 // Validate an import name.
 func (p *sourceParser) validateImportName(tok *token.Token) error {
 	if _, reserved := reservedIdentifiers[tok.StringValue]; reserved {
@@ -80,6 +84,10 @@ func (p *sourceParser) validateTypeName(tok *token.Token) error {
 func (p *sourceParser) validateFunctionName(tok *token.Token) error {
 	if _, reserved := reservedIdentifiers[tok.StringValue]; reserved {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved identifier", tok.StringValue), tok)
+	}
+
+	if _, reserved := reservedFunctionNames[tok.StringValue]; reserved {
+		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved function name", tok.StringValue), tok)
 	}
 
 	if !firstUpperCamelCaseExpression.MatchString(tok.StringValue) {
@@ -127,6 +135,10 @@ func (p *sourceParser) validateArgumentName(tok *token.Token) error {
 
 	if _, reserved := reservedArgumentNames[tok.StringValue]; reserved {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved argument name", tok.StringValue), tok)
+	}
+
+	if tok.StringValue[len(tok.StringValue)-1] == '_' {
+		return p.parseErrorForToken(fmt.Sprintf("argument names cannot end in underscores", tok.StringValue), tok)
 	}
 
 	if !firstLowerCamelCaseExpression.MatchString(tok.StringValue) {

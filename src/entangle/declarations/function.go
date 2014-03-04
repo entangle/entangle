@@ -137,3 +137,16 @@ func (f *Function) MinimumDeserializedLength() (minimum int) {
 
 	return int(minIndex)
 }
+
+// Length of serialized array.
+func (f *Function) SerializedLength() (length int) {
+	maxIndex := uint(0)
+
+	for _, arg := range f.Arguments {
+		if arg.Index > maxIndex {
+			maxIndex = arg.Index
+		}
+	}
+
+	return int(maxIndex)
+}

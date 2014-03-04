@@ -1,1 +1,112 @@
 {{$interface := .Interface}}package {{.PackageName}}
+
+import (
+	"errors"
+	"net"
+	"io"
+	"github.com/entangle/goentangle"
+)
+{{range $interface.Services}}
+{{$service := .}}type {{$service.Name}}Client struct {
+	handler *goentangle.ClientConnHandler
+}
+
+{{range .Functions}}{{$fun := .}}func (c *{{$service.Name}}Client) serializeArgumentsFor{{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}} {{type $arg.Type}}{{end}}) (ser_ []interface{}, err_ error) {
+	ser_ = make([]interface{}, {{$fun.SerializedLength}})
+
+{{range $fun.ArgumentsSortedByIndex}}
+	// Serialize {{.Name}}.
+{{$dst := argIndex . | printf "ser_[%s]"}}{{typeSerializationCode .Type .Name $dst 1}}
+{{end}}
+	return
+}
+
+func (c *{{$service.Name}}Client) call{{$fun.Name}}(args []interface{}, notify, trace bool) ({{if $fun.ReturnType}}result {{type $fun.ReturnType}}, {{end}}err error, traceResult goentangle.Trace) {
+	// Call.
+	var msg goentangle.Message
+	if msg, err = c.handler.Call("{{$fun.Name}}", args, notify, trace); err != nil || notify {
+		return
+	}
+
+	// Deserialize response.
+	switch msg.(type) {
+	case *goentangle.ResponseMessage:
+		resp := msg.(*goentangle.ResponseMessage)
+		traceResult = resp.Trace
+{{if $fun.ReturnType}}
+		{{if $fun.ReturnType.Nilable}}if resp.Result != nil {
+			var desValue {{nonNilableType $fun.ReturnType.Type}}
+			if desValue, err = {{typeDeserializationMethod $fun.ReturnType}}(resp.Result); err != nil {
+				return
+			}
+			result = &desValue
+		}{{else}}if resp.Result == nil {
+			err = errors.New("return value from {{$fun.Name}} is unexpectedly nil")
+			return
+		} else if result, err = {{typeDeserializationMethod $fun.ReturnType}}(resp.Result); err != nil {
+			return
+		}{{end}}
+
+{{end}}
+	case *goentangle.ExceptionMessage:
+		exc := msg.(*goentangle.ExceptionMessage)
+		err = parseException(exc.Definition, exc.Name, exc.Description)
+		traceResult = exc.Trace
+	}
+
+	return
+}
+
+{{documentation $fun.Documentation 0}}func (c_ *{{$service.Name}}Client) {{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}} {{type $arg.Type}}{{end}}) ({{if $fun.ReturnType}}result_ {{type $fun.ReturnType}}, {{end}}err_ error) {
+	// Serialize arguments.
+	var args_ []interface{}
+	if args_, err_ = c_.serializeArgumentsFor{{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}}{{end}}); err_ != nil {
+		return
+	}
+
+    {{if $fun.ReturnType}}result_, {{end}}err_, _ = c_.call{{$fun.Name}}(args_, false, false)
+	return
+}
+
+{{documentation $fun.Documentation 0}}func (c_ *{{$service.Name}}Client) Trace{{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}} {{type $arg.Type}}{{end}}) ({{if $fun.ReturnType}}result_ {{type $fun.ReturnType}}, {{end}}trace_ goentangle.Trace, err_ error) {
+	// Serialize arguments.
+	var args_ []interface{}
+	if args_, err_ = c_.serializeArgumentsFor{{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}}{{end}}); err_ != nil {
+		return
+	}
+
+    {{if $fun.ReturnType}}result_, {{end}}err_, trace_ = c_.call{{$fun.Name}}(args_, false, true)
+	return
+}
+
+{{documentation $fun.Documentation 0}}func (c_ *{{$service.Name}}Client) Notify{{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}} {{type $arg.Type}}{{end}}) (err_ error) {
+	// Serialize arguments.
+	var args_ []interface{}
+	if args_, err_ = c_.serializeArgumentsFor{{$fun.Name}}({{range $index, $arg := $fun.ArgumentsSortedByIndex}}{{if $index}}, {{end}}{{$arg.Name}}{{end}}); err_ != nil {
+		return
+	}
+
+    {{if $fun.ReturnType}}_, {{end}}err_, _ = c_.call{{$fun.Name}}(args_, true, false)
+	return
+}
+
+{{end}}
+// Close connection.
+func (c *{{$service.Name}}Client) Close() error {
+	return c.handler.Close()
+}
+
+func Dial{{$service.Name}}(network, address string) (c *{{$service.Name}}Client, err error) {
+	conn, err := net.Dial(network, address)
+	if err != nil {
+		return nil, err
+	}
+	return New{{$service.Name}}Client(conn, conn.RemoteAddr().String()), nil
+}
+
+func New{{$service.Name}}Client(conn io.ReadWriteCloser, description string) (c *{{$service.Name}}Client) {
+	return &{{$service.Name}}Client {
+		handler: goentangle.NewClientConnHandler(goentangle.NewConn(conn, description)),
+	}
+}
+{{end}}

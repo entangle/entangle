@@ -9,8 +9,8 @@ var (
 {{end}}{{end}}{{documentation $exc.Documentation 1}}	{{$exc.Name}} = goentangle.NewExceptionDefinition("{{$interface.Name}}", "{{$exc.Name}}")
 {{end}})
 {{end}}
-func parseException(namespace, name, description string) goentangle.Exception {
-	switch namespace {
+func parseException(definition, name, description string) goentangle.Exception {
+	switch definition {
 	case "entangle":
 		switch name {
 		case "BadMessage":
