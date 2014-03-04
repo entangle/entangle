@@ -1,4 +1,4 @@
 package golang
 
 // Generator options.
-type Options struct {}
+type Options struct{}

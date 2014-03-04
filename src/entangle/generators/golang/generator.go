@@ -102,9 +102,9 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 	serDesMap := buildSerDesMap(interfaceDecl)
 
 	// Set up the context.
-	ctx := &context {
-		Interface: interfaceDecl,
-		SerDesMap: serDesMap,
+	ctx := &context{
+		Interface:   interfaceDecl,
+		SerDesMap:   serDesMap,
 		PackageName: interfaceDecl.Name,
 	}
 

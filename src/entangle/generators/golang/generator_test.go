@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewGenerator(t *testing.T) {
-	generator, err := NewGenerator()
+	generator, err := NewGenerator(&Options{})
 
 	if err != nil {
 		t.Errorf("Initializing Go generator failed: %v", err)
