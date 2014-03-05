@@ -53,21 +53,16 @@ func generatePacking(ctx *context) (src *SourceFile, err error) {
 			w.Unindent()
 			w.BlankLine()
 
-			w.Line("result = {}")
+			w.Line("stream.write(packer_.pack_map_header(len(value)))")
 			w.BlankLine()
 
 			w.Line("for ser_key, ser_value in value:")
 			w.Indent()
 
-			w.Line("des_key, des_value = None")
-			writeSingleInlineDeserialization("ser_key", "des_key", "map key", "", keyType, w, src)
-			writeSingleInlineDeserialization("ser_value", "des_value", "map value", "", valueType, w, src)
-			w.Line("result[des_key] = des_value")
+			writeSingleInlinePacking("ser_key", "stream", "map key", keyType, w, src)
+			writeSingleInlinePacking("ser_value", "stream", "map value", valueType, w, src)
 
 			w.Unindent()
-
-			w.BlankLine()
-			w.Line("return result")
 
 		default:
 			panic("Cannot generate deserialization code for type")
