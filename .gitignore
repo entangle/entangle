@@ -12,3 +12,6 @@
 # Python testing environment.
 /py
 *.pyc
+
+# OS crap.
+.DS_Store
