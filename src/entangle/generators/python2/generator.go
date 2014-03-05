@@ -97,6 +97,7 @@ func (g *generator) Generate(interfaceDecl *declarations.Interface, outputPath s
 	} {
 		{ "types.py", generateTypes },
 		{ "clients.py", generateClients },
+		{ "exceptions.py", generateExceptions },
 	} {
 		filePath := filepath.Join(outputPath, output.Filename)
 

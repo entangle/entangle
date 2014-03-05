@@ -134,8 +134,7 @@ func (w *codeWriter) ParentherizedWithArguments(prefix, suffix string, args ...s
 
 // Write parentherized definition.
 //
-// Writes `<definition> = (<args...>)` or breaks it into multiple lines with
-// following lines indented by the length of the prefix and parenthesis.
+// Writes `<definition> = (<args...>)` or breaks it into multiple lines.
 func (w *codeWriter) ParentherizedDefinition(definition string, args ...string) {
 	// Attempt with a single line version first.
 	singleLine := fmt.Sprintf("%s = (%s)", definition, strings.Join(args, ", "))
@@ -151,6 +150,40 @@ func (w *codeWriter) ParentherizedDefinition(definition string, args ...string) 
 		w.Linef("    %s,", a)
 	}
 	w.Line(")")
+}
+
+// Write dictionary definition.
+//
+// Writes `<definition> = {<key>: <value>, ..}` or breaks it into multiple
+// lines.
+func (w *codeWriter) DictDefinition(definition string, mapping map[string]string) {
+	// Attempt with a single line version first.
+	defs := make([]string, len(mapping))
+	i := 0
+	for k, v := range mapping {
+		defs[i] = fmt.Sprintf("%s: %s", k, v)
+		i++
+	}
+
+	singleLine := fmt.Sprintf("%s = {%s}", definition, strings.Join(defs, ", "))
+
+	if w.Fits(singleLine) || len(mapping) == 0 {
+		w.Line(singleLine)
+		return
+	}
+
+	// Build the multi line version.
+	w.Linef("%s = {", definition)
+	for k, v := range mapping {
+		singleLine = fmt.Sprintf("    %s: %s,", k, v)
+		if w.Fits(singleLine) {
+			w.Line(singleLine)
+		} else {
+			w.Linef("    %s:", k)
+			w.Linef("        %s,", v)
+		}
+	}
+	w.Line("}")
 }
 
 // Write exception raising statement.

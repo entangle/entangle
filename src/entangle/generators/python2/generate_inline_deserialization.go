@@ -40,6 +40,8 @@ type inlineDeserializationDecl struct {
 // If a predicate is to be evaluated prior to accessing the source, the
 // predicate must be provided.
 func writeSingleInlineDeserialization(source, target, description, predicate string, typeDecl declarations.Type, w *codeWriter, src *SourceFile) {
+	src.ImportAs("entangle.exceptions", "DeserializationError", "DeserializationError_")
+
 	if !typeDecl.Nilable() {
 		if predicate != "" {
 			w.Linef("if %s:", predicate)
@@ -104,8 +106,6 @@ func writeInlineDeserialization(decls []inlineDeserializationDecl, targetDesc st
 	}
 
 	// Write type and length validation for serialized input.
-	src.ImportAs("entangle.exceptions", "DeserializationError", "DeserializationError_")
-
 	w.Line("if not isinstance(ser, (list, tuple)):")
 	w.Indent()
 	w.RaiseException("DeserializationError_", fmt.Sprintf("deserialization of %s requires a list or tuple as input", targetDesc))
@@ -129,7 +129,7 @@ func writeInlineDeserialization(decls []inlineDeserializationDecl, targetDesc st
 		source := fmt.Sprintf("ser[%d]", i)
 		predicate := ""
 		if decl.Type.Nilable() && i >= minLength {
-			predicate = fmt.Sprintf("if len(ser) > %d", i)
+			predicate = fmt.Sprintf("len(ser) > %d", i)
 		}
 
 		writeSingleInlineDeserialization(source, decl.Target, decl.Description, predicate, decl.Type, w, src)
