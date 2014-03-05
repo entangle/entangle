@@ -50,7 +50,7 @@ func documentationHelper(documentation []string, indentation int) string {
 
 	for _, paragraph := range documentation {
 		if len(lines) > 0 {
-			lines = append(lines, prefix)
+			lines = append(lines, "")
 		}
 
 		for _, line := range wrapper.Wrap(paragraph) {

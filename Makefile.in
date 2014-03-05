@@ -7,7 +7,8 @@ PACKAGES := \
 	entangle/utils \
 	entangle/term \
 	entangle/generators \
-	entangle/generators/golang
+	entangle/generators/golang \
+	entangle/generators/python2
 SOURCE := $(wildcard $(addsuffix /*.go, $(addprefix src/, $(PACKAGES)))) src/entangle/data/assets.go
 LIBRARIES := \
 	code.google.com/p/go.tools/imports \

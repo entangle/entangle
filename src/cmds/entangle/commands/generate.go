@@ -31,6 +31,11 @@ var targetLanguageMapping = map[string]targetLanguageDefinition {
 		FlagSet: goTargetFlagSet,
 		Generate: goTargetGenerate,
 	},
+	"python2": {
+		Synopsis: "Python 2",
+		FlagSet: python2TargetFlagSet,
+		Generate: python2TargetGenerate,
+	},
 }
 
 // Generate command.

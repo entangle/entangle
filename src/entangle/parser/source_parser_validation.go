@@ -10,8 +10,8 @@ var (
 	lowerCamelCaseExpression             = regexp.MustCompile(`^[a-z][a-z0-9]*$`)
 	firstLowerCamelCaseExpression        = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)
 	firstUpperCamelCaseExpression        = regexp.MustCompile(`^[A-Z][a-zA-Z0-9]*$`)
-	firstLowerCamelOrSnakeCaseExpression = regexp.MustCompile(`^[a-z][_a-zA-Z0-9]*$`)
-	firstUpperCamelOrSnakeCaseExpression = regexp.MustCompile(`^[A-Z][_a-zA-Z0-9]*$`)
+	firstLowerCamelOrSnakeCaseExpression = regexp.MustCompile(`^[a-z](?:[_a-zA-Z0-9]*[a-zA-Z0-9])?$`)
+	firstUpperCamelOrSnakeCaseExpression = regexp.MustCompile(`^[A-Z](?:[_a-zA-Z0-9]*[a-zA-Z0-9])?$`)
 )
 
 // Reserved identifiers.
@@ -44,6 +44,8 @@ var reservedArgumentNames = map[string]struct{}{
 var reservedFieldNames = map[string]struct{}{
 	"Serialize":   struct{}{},
 	"Deserialize": struct{}{},
+	"Pack":        struct{}{},
+	"Unpack":      struct{}{},
 }
 
 var reservedDefinitionNames = map[string]struct{}{
@@ -52,6 +54,13 @@ var reservedDefinitionNames = map[string]struct{}{
 
 var reservedFunctionNames = map[string]struct{}{
 	"Close": struct{}{},
+}
+
+var reservedEnumNames = map[string]struct{}{
+	"Serialize":   struct{}{},
+	"Deserialize": struct{}{},
+	"Pack":        struct{}{},
+	"Unpack":      struct{}{},
 }
 
 // Validate an import name.
@@ -103,6 +112,10 @@ func (p *sourceParser) validateEnumValueName(tok *token.Token) error {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved identifier", tok.StringValue), tok)
 	}
 
+	if _, reserved := reservedEnumNames[tok.StringValue]; reserved {
+		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved enumeration value", tok.StringValue), tok)
+	}
+
 	if !firstUpperCamelCaseExpression.MatchString(tok.StringValue) {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is not a valid enumeration value name. Enumeration value names must be upper camel case or upper snake case", tok.StringValue), tok)
 	}
@@ -135,10 +148,6 @@ func (p *sourceParser) validateArgumentName(tok *token.Token) error {
 
 	if _, reserved := reservedArgumentNames[tok.StringValue]; reserved {
 		return p.parseErrorForToken(fmt.Sprintf("'%s' is a reserved argument name", tok.StringValue), tok)
-	}
-
-	if tok.StringValue[len(tok.StringValue)-1] == '_' {
-		return p.parseErrorForToken(fmt.Sprintf("argument names cannot end in underscores", tok.StringValue), tok)
 	}
 
 	if !firstLowerCamelCaseExpression.MatchString(tok.StringValue) {

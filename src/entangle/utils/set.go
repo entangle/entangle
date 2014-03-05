@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"sort"
+)
+
 // String set.
 type StringSet map[string]struct{}
 
@@ -17,6 +21,20 @@ func (s StringSet) Contains(val string) bool {
 // Remove a value from set.
 func (s StringSet) Remove(val string) {
 	delete(s, val)
+}
+
+// Sorted values.
+func (s StringSet) Sorted() []string {
+	values := make([]string, len(s))
+	i := 0
+	for v, _ := range s {
+		values[i] = v
+		i++
+	}
+
+	sort.Strings(values)
+
+	return values
 }
 
 // Int set.
