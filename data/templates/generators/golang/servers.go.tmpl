@@ -115,6 +115,9 @@ func (s *{{$serverName}}) handleRequest(conn *goentangle.Conn, msg goentangle.Me
 
 	switch methodName {
 {{range .Functions}}	case "{{.Name}}":
+		if isNotification {
+			conn.AcknowledgeNotification(msg)
+		}
 		result, err = s.handle{{.Name}}(arguments, trace)
 
 {{end}}	default:
@@ -126,14 +129,10 @@ func (s *{{$serverName}}) handleRequest(conn *goentangle.Conn, msg goentangle.Me
 	}
 
 	// Write a response if necessary.
-	if isNotification {
-		return
-	}
-
 	if err != nil {
-		conn.RespondException(err, msg, trace)
+		conn.RaiseException(err, msg, trace)
 	} else if !isNotification {
-		conn.RespondResponse(result, msg, trace)
+		conn.Respond(result, msg, trace)
 	}
 }
 
@@ -162,7 +161,7 @@ func (s *{{$serverName}}) ServeConn(conn *goentangle.Conn) {
 
 		default:
 			log.Printf("non-request message received from %s\n", connDesc)
-			conn.RespondException(goentangle.BadMessageError.New("non-request message received"), msg, nil)
+			conn.RaiseException(goentangle.BadMessageError.New("non-request message received"), msg, nil)
 			continue
 		}
 

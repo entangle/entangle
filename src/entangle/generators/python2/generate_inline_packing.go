@@ -35,6 +35,73 @@ type inlinePackingDecl struct {
 	Type declarations.Type
 }
 
+// Write inline packing for a single type.
+func writeSingleInlinePacking(source, stream, description string, typeDecl declarations.Type, w *codeWriter, src *SourceFile) {
+	if typeDecl.Nilable() {
+		w.Linef("if %s is not None:", source)
+		w.Indent()
+	}
+
+	switch typeDecl.Class() {
+	case declarations.BoolClass, declarations.StringClass, declarations.BinaryClass, declarations.Float32Class, declarations.Float64Class, declarations.Int8Class, declarations.Int16Class, declarations.Int32Class, declarations.Int64Class, declarations.Uint8Class, declarations.Uint16Class, declarations.Uint32Class, declarations.Uint64Class:
+		packer := simplePackerMapping[typeDecl.Class()]
+		src.ImportAs("entangle.packing", packer, fmt.Sprintf("%s_", packer))
+		w.Linef("%s.write(%s_(%s))", stream, packer, source)
+
+	case declarations.EnumClass, declarations.StructClass:
+		var clsName string
+		if typeDecl.Class() == declarations.StructClass {
+			clsName = typeDecl.(*declarations.StructType).Struct().Name
+		} else {
+			clsName = typeDecl.(*declarations.EnumType).Enum().Name
+		}
+
+		if src.moduleName == "packing" {
+			w.Linef("from .types import %s", clsName)
+		} else {
+			src.Import(".types", clsName)
+		}
+
+		src.ImportAs("entangle.exceptions", "PackingError", "PackingError_")
+
+		w.Linef("if not isinstance(%s, %s):", source, clsName)
+		w.Indent()
+		w.RaiseException("PackingError_", fmt.Sprintf("%s is not an instance of %s", description, clsName))
+		w.Unindent()
+		w.Linef("%s.write(%s.pack())", stream, source)
+
+	case declarations.MapClass, declarations.ListClass:
+		requiredType := "list"
+		if typeDecl.Class() == declarations.MapClass {
+			requiredType = "dict"
+		}
+
+		src.ImportAs("entangle.exceptions", "PackingError", "PackingError_")
+
+		packer := nameOfPacker(typeDecl)
+
+		w.Linef("if not isinstance(%s, %s):", source, requiredType)
+		w.Indent()
+		w.RaiseException("PackingError_", fmt.Sprintf("%s is not a list", description))
+		w.Unindent()
+
+		if src.moduleName == "packing" {
+			w.ParentherizedWithArguments(fmt.Sprintf(packer), "", source, stream)
+		} else {
+			src.ImportAs(".packing", packer, fmt.Sprintf("%s_", packer))
+			w.ParentherizedWithArguments(fmt.Sprintf("%s_", packer), "", source, stream)
+		}
+	}
+
+	if typeDecl.Nilable() {
+		w.Unindent()
+		w.Line("else:")
+		w.Indent()
+		w.Linef("%s.write('\\xc0')", stream)
+		w.Unindent()
+	}
+}
+
 // Write inline packing.
 //
 // Expects the output to be written to a writable called "stream_" in the code.
@@ -68,64 +135,6 @@ func writeInlinePacking(decls []inlinePackingDecl, w *codeWriter, src *SourceFil
 			continue
 		}
 
-		if decl.Type.Nilable() {
-			w.Linef("if %s is not None:", decl.Source)
-			w.Indent()
-		}
-
-		switch decl.Type.Class() {
-		case declarations.BoolClass, declarations.StringClass, declarations.BinaryClass, declarations.Float32Class, declarations.Float64Class, declarations.Int8Class, declarations.Int16Class, declarations.Int32Class, declarations.Int64Class, declarations.Uint8Class, declarations.Uint16Class, declarations.Uint32Class, declarations.Uint64Class:
-			packer := simplePackerMapping[decl.Type.Class()]
-			src.ImportAs("entangle.packing", packer, fmt.Sprintf("%s_", packer))
-			w.Linef("stream_.write(%s_(%s))", packer, decl.Source)
-
-		case declarations.EnumClass:
-			enumName := decl.Type.(*declarations.EnumType).Enum().Name
-
-			src.ImportAs("entangle.exceptions", "PackingError", "PackingError_")
-			src.Import(".types", enumName)
-
-			w.Linef("if not isinstance(%s, %s):", decl.Source, enumName)
-			w.Indent()
-			w.RaiseException("PackingError_", fmt.Sprintf("%s is not an instance of %s", decl.Description, enumName))
-			w.Unindent()
-			w.Linef("stream_.write(%s.pack())", decl.Source)
-
-		case declarations.StructClass:
-			structName := decl.Type.(*declarations.StructType).Struct().Name
-
-			src.ImportAs("entangle.exceptions", "PackingError", "PackingError_")
-			src.Import(".types", structName)
-
-			w.Linef("if not isinstance(%s, %s):", decl.Source, structName)
-			w.Indent()
-			w.RaiseException("PackingError_", fmt.Sprintf("%s is not an instance of %s", decl.Description, structName))
-			w.Unindent()
-			w.Linef("%s.pack(stream_)", decl.Source)
-
-		case declarations.MapClass, declarations.ListClass:
-			requiredType := "list"
-			if decl.Type.Class() == declarations.MapClass {
-				requiredType = "dict"
-			}
-
-			packer := nameOfPacker(decl.Type)
-			src.ImportAs("entangle.exceptions", "PackingError", "PackingError_")
-			src.ImportAs(".packing", packer, fmt.Sprintf("%s_", packer))
-
-			w.Linef("if not isinstance(%s, %s):", decl.Source, requiredType)
-			w.Indent()
-			w.RaiseException("PackingError_", fmt.Sprintf("%s is not a list", decl.Description))
-			w.Unindent()
-			w.ParentherizedWithArguments(fmt.Sprintf("%s_", packer), "", decl.Source, "stream_")
-		}
-
-		if decl.Type.Nilable() {
-			w.Unindent()
-			w.Line("else:")
-			w.Indent()
-			w.Line("stream_.write('\\xc0')")
-			w.Unindent()
-		}
+		writeSingleInlinePacking(decl.Source, "stream_", decl.Description, decl.Type, w, src)
 	}
 }

@@ -64,8 +64,6 @@ func generateClients(ctx *context) (src *SourceFile, err error) {
 			// Write the service calling.
 			w.Comment("Call the service.")
 			w.ParentherizedWithArguments("response = self_._call", "", fmt.Sprintf("'%s'", fun.Name), "stream_.getvalue()", "trace=trace", "notify=notify")
-			w.Line("if notify:")
-			w.Line("    return None, None")
 			w.BlankLine()
 
 			// Write the exception response handling.
@@ -74,9 +72,12 @@ func generateClients(ctx *context) (src *SourceFile, err error) {
 			src.ImportAs(".exceptions", "parse_exception", "parse_exception_")
 			w.Line("if isinstance(response, ExceptionMessage_):")
 			w.Indent()
-			w.Line("raise parse_exception_(response)")
-
+			w.ParentherizedWithArguments("raise parse_exception_", "", "response.definition", "response.name", "response.description")
 			w.Unindent()
+			w.BlankLine()
+
+			w.Line("if notify:")
+			w.Line("    return (None, None)")
 			w.BlankLine()
 
 			// Write the result response handling.

@@ -68,22 +68,30 @@ func writeSingleInlineDeserialization(source, target, description, predicate str
 		src.ImportAs("entangle.deserialization", deserializer, fmt.Sprintf("%s_", deserializer))
 		w.Linef("%s = %s_(%s)", target, deserializer, source)
 
-	case declarations.EnumClass:
-		enumName := typeDecl.(*declarations.EnumType).Enum().Name
+	case declarations.EnumClass, declarations.StructClass:
+		var clsName string
+		if typeDecl.Class() == declarations.StructClass {
+			clsName = typeDecl.(*declarations.StructType).Struct().Name
+		} else {
+			clsName = typeDecl.(*declarations.EnumType).Enum().Name
+		}
 
-		src.Import(".types", enumName)
-		w.Linef("%s = %s.deserialize(%s)", target, enumName, source)
+		if src.moduleName == "deserialization" {
+			w.Linef("from .types import %s", clsName)
+		} else {
+			src.Import(".types", clsName)
+		}
 
-	case declarations.StructClass:
-		structName := typeDecl.(*declarations.StructType).Struct().Name
-
-		src.Import(".types", structName)
-		w.Linef("%s = %s.deserialize(%s)", target, structName, source)
+		w.Linef("%s = %s.deserialize(%s)", target, clsName, source)
 
 	case declarations.MapClass, declarations.ListClass:
 		deserializer := nameOfDeserializer(typeDecl)
-		src.ImportAs(".deserialization", deserializer, fmt.Sprintf("%s_", deserializer))
-		w.ParentherizedWithArguments(fmt.Sprintf("%s = %s_", target, deserializer), "", source)
+		if src.moduleName == "deserialization" {
+			w.ParentherizedWithArguments(fmt.Sprintf("%s = %s", target, deserializer), "", source)
+		} else {
+			src.ImportAs(".deserialization", deserializer, fmt.Sprintf("%s_", deserializer))
+			w.ParentherizedWithArguments(fmt.Sprintf("%s = %s_", target, deserializer), "", source)
+		}
 	}
 
 	if typeDecl.Nilable() || predicate != "" {
@@ -106,6 +114,8 @@ func writeInlineDeserialization(decls []inlineDeserializationDecl, targetDesc st
 	}
 
 	// Write type and length validation for serialized input.
+	src.ImportAs("entangle.exceptions", "DeserializationError", "DeserializationError_")
+
 	w.Line("if not isinstance(ser, (list, tuple)):")
 	w.Indent()
 	w.RaiseException("DeserializationError_", fmt.Sprintf("deserialization of %s requires a list or tuple as input", targetDesc))
