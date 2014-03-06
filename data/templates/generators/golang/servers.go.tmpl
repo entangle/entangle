@@ -79,7 +79,7 @@ func (s *{{$serverName}}) Wait() {
 {{end}}	{{if .ReturnType}}var returnValue {{type .ReturnType}}
 	returnValue, {{end}}err = s.implementation.{{.Name}}({{range $index, $arg := .ArgumentsSortedByIndex}}{{if $index}}, {{end}}arg{{$arg.Index}}{{end}}{{if .Arguments}}, {{end}}trace){{if .ReturnType}}
 
-{{typeSerializationCode .ReturnType "returnValue" "serReturnValue" 1}}{{end}}
+{{typeSerializationCode .ReturnType "returnValue" "serReturnValue" "err" 1}}{{end}}
 
 	return
 }

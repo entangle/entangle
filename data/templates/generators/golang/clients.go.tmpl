@@ -16,7 +16,7 @@ import (
 
 {{range $fun.ArgumentsSortedByIndex}}
 	// Serialize {{.Name}}.
-{{$dst := argIndex . | printf "ser_[%s]"}}{{typeSerializationCode .Type .Name $dst 1}}
+{{$dst := argIndex . | printf "ser_[%s]"}}{{typeSerializationCode .Type .Name $dst "err_" 1}}
 {{end}}
 	return
 }
