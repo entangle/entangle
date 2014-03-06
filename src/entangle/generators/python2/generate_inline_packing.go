@@ -68,7 +68,7 @@ func writeSingleInlinePacking(source, stream, description string, typeDecl decla
 		w.Indent()
 		w.RaiseException("PackingError_", fmt.Sprintf("%s is not an instance of %s", description, clsName))
 		w.Unindent()
-		w.Linef("%s.write(%s.pack())", stream, source)
+		w.Linef("%s.pack(%s)", source, stream)
 
 	case declarations.MapClass, declarations.ListClass:
 		requiredType := "list"
