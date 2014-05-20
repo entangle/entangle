@@ -125,7 +125,7 @@ func writeInlineDeserialization(decls []inlineDeserializationDecl, targetDesc st
 		return
 	}
 
-	w.Linef("if not len(ser) < %d:", minLength)
+	w.Linef("if len(ser) < %d:", minLength)
 	w.Indent()
 	w.RaiseException("DeserializationError_", fmt.Sprintf("insufficient data to deserialize %s", targetDesc))
 	w.Unindent()
