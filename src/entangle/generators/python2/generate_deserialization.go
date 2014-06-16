@@ -60,7 +60,7 @@ func generateDeserialization(ctx *context) (src *SourceFile, err error) {
 			w.Line("result = {}")
 			w.BlankLine()
 
-			w.Line("for ser_key, ser_value in value:")
+			w.Line("for ser_key, ser_value in value.items():")
 			w.Indent()
 
 			w.Line("des_key, des_value = None")
