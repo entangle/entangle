@@ -63,7 +63,7 @@ func generateDeserialization(ctx *context) (src *SourceFile, err error) {
 			w.Line("for ser_key, ser_value in value.items():")
 			w.Indent()
 
-			w.Line("des_key, des_value = None")
+			w.Line("des_key, des_value = None, None")
 			writeSingleInlineDeserialization("ser_key", "des_key", "map key", "", keyType, w, src)
 			writeSingleInlineDeserialization("ser_value", "des_value", "map value", "", valueType, w, src)
 			w.Line("result[des_key] = des_value")
